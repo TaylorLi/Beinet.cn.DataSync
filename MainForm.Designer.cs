@@ -35,21 +35,21 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.chkErrContinue = new System.Windows.Forms.CheckBox();
             this.chkAll = new System.Windows.Forms.CheckBox();
-            this.chkIdentifier = new System.Windows.Forms.CheckBox();
-            this.chkClear = new System.Windows.Forms.CheckBox();
             this.btnDelRow = new System.Windows.Forms.Button();
             this.btnAddNewSql = new System.Windows.Forms.Button();
             this.btnGetSchma = new System.Windows.Forms.Button();
+            this.btnSaveConfig = new System.Windows.Forms.Button();
             this.btnSyncBegin = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.txtDbTarget = new System.Windows.Forms.TextBox();
             this.lstTarget = new System.Windows.Forms.ComboBox();
-            this.lstSource = new System.Windows.Forms.ComboBox();
             this.lvTables = new System.Windows.Forms.ListView();
             this.colSource = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTarget = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colTruncate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.colIdentifier = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
-            this.btnSaveConfig = new System.Windows.Forms.Button();
+            this.lstBoolean = new System.Windows.Forms.ComboBox();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -89,8 +89,6 @@
             // 
             this.splitContainer1.Panel1.Controls.Add(this.chkErrContinue);
             this.splitContainer1.Panel1.Controls.Add(this.chkAll);
-            this.splitContainer1.Panel1.Controls.Add(this.chkIdentifier);
-            this.splitContainer1.Panel1.Controls.Add(this.chkClear);
             this.splitContainer1.Panel1.Controls.Add(this.btnDelRow);
             this.splitContainer1.Panel1.Controls.Add(this.btnAddNewSql);
             this.splitContainer1.Panel1.Controls.Add(this.btnGetSchma);
@@ -104,8 +102,8 @@
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.lstBoolean);
             this.splitContainer1.Panel2.Controls.Add(this.lstTarget);
-            this.splitContainer1.Panel2.Controls.Add(this.lstSource);
             this.splitContainer1.Panel2.Controls.Add(this.lvTables);
             this.splitContainer1.Panel2MinSize = 1;
             this.splitContainer1.Size = new System.Drawing.Size(676, 452);
@@ -117,7 +115,7 @@
             // chkErrContinue
             // 
             this.chkErrContinue.AutoSize = true;
-            this.chkErrContinue.Location = new System.Drawing.Point(528, 63);
+            this.chkErrContinue.Location = new System.Drawing.Point(343, 60);
             this.chkErrContinue.Name = "chkErrContinue";
             this.chkErrContinue.Size = new System.Drawing.Size(144, 16);
             this.chkErrContinue.TabIndex = 4;
@@ -134,26 +132,6 @@
             this.chkAll.Text = "全选";
             this.chkAll.UseVisualStyleBackColor = true;
             this.chkAll.CheckedChanged += new System.EventHandler(this.chkAll_CheckedChanged);
-            // 
-            // chkIdentifier
-            // 
-            this.chkIdentifier.AutoSize = true;
-            this.chkIdentifier.Location = new System.Drawing.Point(452, 63);
-            this.chkIdentifier.Name = "chkIdentifier";
-            this.chkIdentifier.Size = new System.Drawing.Size(72, 16);
-            this.chkIdentifier.TabIndex = 4;
-            this.chkIdentifier.Text = "标识插入";
-            this.chkIdentifier.UseVisualStyleBackColor = true;
-            // 
-            // chkClear
-            // 
-            this.chkClear.AutoSize = true;
-            this.chkClear.Location = new System.Drawing.Point(362, 63);
-            this.chkClear.Name = "chkClear";
-            this.chkClear.Size = new System.Drawing.Size(84, 16);
-            this.chkClear.TabIndex = 4;
-            this.chkClear.Text = "清空目标表";
-            this.chkClear.UseVisualStyleBackColor = true;
             // 
             // btnDelRow
             // 
@@ -186,6 +164,18 @@
             this.btnGetSchma.Text = "获取表结构";
             this.btnGetSchma.UseVisualStyleBackColor = true;
             this.btnGetSchma.Click += new System.EventHandler(this.btnGetSchma_Click);
+            // 
+            // btnSaveConfig
+            // 
+            this.btnSaveConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveConfig.Enabled = false;
+            this.btnSaveConfig.Location = new System.Drawing.Point(548, 9);
+            this.btnSaveConfig.Name = "btnSaveConfig";
+            this.btnSaveConfig.Size = new System.Drawing.Size(62, 45);
+            this.btnSaveConfig.TabIndex = 3;
+            this.btnSaveConfig.Text = "保存为\r\n配置文件";
+            this.btnSaveConfig.UseVisualStyleBackColor = true;
+            this.btnSaveConfig.Click += new System.EventHandler(this.btnSaveConfig_Click);
             // 
             // btnSyncBegin
             // 
@@ -231,23 +221,14 @@
             this.lstTarget.Visible = false;
             this.lstTarget.Leave += new System.EventHandler(this.lstLeave);
             // 
-            // lstSource
-            // 
-            this.lstSource.DropDownHeight = 1060;
-            this.lstSource.FormattingEnabled = true;
-            this.lstSource.IntegralHeight = false;
-            this.lstSource.Location = new System.Drawing.Point(39, 107);
-            this.lstSource.Name = "lstSource";
-            this.lstSource.Size = new System.Drawing.Size(121, 20);
-            this.lstSource.TabIndex = 1;
-            this.lstSource.Visible = false;
-            // 
             // lvTables
             // 
             this.lvTables.CheckBoxes = true;
             this.lvTables.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colSource,
-            this.colTarget});
+            this.colTarget,
+            this.colTruncate,
+            this.colIdentifier});
             this.lvTables.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvTables.FullRowSelect = true;
             this.lvTables.GridLines = true;
@@ -270,12 +251,21 @@
             // colSource
             // 
             this.colSource.Text = "源表";
-            this.colSource.Width = 300;
+            this.colSource.Width = 250;
             // 
             // colTarget
             // 
             this.colTarget.Text = "目标表";
-            this.colTarget.Width = 300;
+            this.colTarget.Width = 250;
+            // 
+            // colTruncate
+            // 
+            this.colTruncate.Text = "清空目标表";
+            this.colTruncate.Width = 75;
+            // 
+            // colIdentifier
+            // 
+            this.colIdentifier.Text = "标识插入";
             // 
             // imglstForLvTables
             // 
@@ -283,17 +273,21 @@
             this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
             this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
             // 
-            // btnSaveConfig
+            // lstBoolean
             // 
-            this.btnSaveConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveConfig.Enabled = false;
-            this.btnSaveConfig.Location = new System.Drawing.Point(548, 9);
-            this.btnSaveConfig.Name = "btnSaveConfig";
-            this.btnSaveConfig.Size = new System.Drawing.Size(62, 45);
-            this.btnSaveConfig.TabIndex = 3;
-            this.btnSaveConfig.Text = "保存为\r\n配置文件";
-            this.btnSaveConfig.UseVisualStyleBackColor = true;
-            this.btnSaveConfig.Click += new System.EventHandler(this.btnSaveConfig_Click);
+            this.lstBoolean.DropDownHeight = 1060;
+            this.lstBoolean.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.lstBoolean.FormattingEnabled = true;
+            this.lstBoolean.IntegralHeight = false;
+            this.lstBoolean.Items.AddRange(new object[] {
+            "true",
+            "false"});
+            this.lstBoolean.Location = new System.Drawing.Point(435, 185);
+            this.lstBoolean.Name = "lstBoolean";
+            this.lstBoolean.Size = new System.Drawing.Size(121, 20);
+            this.lstBoolean.TabIndex = 3;
+            this.lstBoolean.Visible = false;
+            this.lstBoolean.Leave += new System.EventHandler(this.lstLeave);
             // 
             // MainForm
             // 
@@ -325,15 +319,15 @@
         private System.Windows.Forms.ColumnHeader colSource;
         private System.Windows.Forms.ColumnHeader colTarget;
         private System.Windows.Forms.ComboBox lstTarget;
-        private System.Windows.Forms.ComboBox lstSource;
         private System.Windows.Forms.ImageList imglstForLvTables;
         private System.Windows.Forms.Button btnAddNewSql;
         private System.Windows.Forms.Button btnDelRow;
-        private System.Windows.Forms.CheckBox chkIdentifier;
-        private System.Windows.Forms.CheckBox chkClear;
         private System.Windows.Forms.CheckBox chkErrContinue;
         private System.Windows.Forms.CheckBox chkAll;
         private System.Windows.Forms.Button btnSaveConfig;
+        private System.Windows.Forms.ColumnHeader colTruncate;
+        private System.Windows.Forms.ColumnHeader colIdentifier;
+        private System.Windows.Forms.ComboBox lstBoolean;
     }
 }
 

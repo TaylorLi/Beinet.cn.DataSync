@@ -20,16 +20,12 @@ namespace Beinet.cn.DataSync
             this.arr = task.Items;
             this.sourceCon = task.SourceConstr;
             this.targetCon = task.TargetConstr;
-            this.truncate = task.TruncateOld;
-            this.useIdentifier = task.UseIdentifier;
             this.errContinue = task.ErrContinue;
         }
 
         private readonly IEnumerable<SyncItem> arr;
         private readonly string sourceCon;
         private readonly string targetCon;
-        private readonly bool truncate;
-        private readonly bool useIdentifier;
         private readonly bool errContinue;
 
         private bool canceled = false;
@@ -80,7 +76,7 @@ namespace Beinet.cn.DataSync
 
                             if (Common.ExistsTable(targetCon, item.Target))
                             {
-                                if (truncate)
+                                if (item.TruncateOld)
                                 {
                                     Common.TruncateTable(targetCon, item.Target);
                                 }
@@ -91,7 +87,7 @@ namespace Beinet.cn.DataSync
                                 string createSql = Common.GetCreateSql(reader, item.Target);
                                 Common.ExecuteNonQuery(targetCon, createSql);
                             }
-                            var opn = useIdentifier ? SqlBulkCopyOptions.KeepIdentity : SqlBulkCopyOptions.Default;
+                            var opn = item.UseIdentifier ? SqlBulkCopyOptions.KeepIdentity : SqlBulkCopyOptions.Default;
                             Stopwatch sw = new Stopwatch();
                             sw.Start();
                             using (SqlBulkCopy bcp = new SqlBulkCopy(targetCon, opn))
@@ -231,6 +227,11 @@ namespace Beinet.cn.DataSync
         public string Target { get; set; }
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 2, Name = "IsSql")]
         public bool IsSqlSource { get; set; }
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3, Name = "trun")]
+        public bool TruncateOld { get; set; }
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 4, Name = "iden")]
+        public bool UseIdentifier { get; set; }
+
     }
 
     [DataContract]
@@ -243,15 +244,9 @@ namespace Beinet.cn.DataSync
         public string TargetConstr { get; set; }
 
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 2)]
-        public bool TruncateOld { get; set; }
-
-        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3)]
-        public bool UseIdentifier { get; set; }
-
-        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 4)]
         public bool ErrContinue { get; set; }
 
-        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 5)]
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3)]
         public IEnumerable<SyncItem> Items { get; set; }
     }
 }

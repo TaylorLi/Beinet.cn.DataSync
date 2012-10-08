@@ -7,7 +7,6 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using System.Xml;
 
 namespace Beinet.cn.DataSync
@@ -15,15 +14,20 @@ namespace Beinet.cn.DataSync
     public partial class MainForm : Form
     {
         // 总列数
-        private const int COL_COUNT = 4;
+        private const int COL_COUNT = 6;
         // 源表列号
         private const int COL_SOURCE = 0;
         // 目标表列号
         private const int COL_TARGET = 1;
+        // 清空目标表列号，用于指定导入前是否要清空目标表数据
+        private const int COL_TRUNCATE = 2;
+        // 标识插入列号，用于指定导入是否要导入源表的标识字段
+        private const int COL_IDENTIFIER = 3;
+
         // 源表备份列号，用于标识这行是否自定义查询
-        private const int COL_SOURCEBACK = 2;
+        private const int COL_SOURCEBACK = 4;
         // 目标表备份列号，用于输入目标表，又取消勾选，再勾选时的恢复
-        private const int COL_TARGETBACK = 3;
+        private const int COL_TARGETBACK = 5;
 
         private readonly string configPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "sync.xml");
 
@@ -63,9 +67,7 @@ namespace Beinet.cn.DataSync
                 {
                     txtDbSource.Text = task.SourceConstr;
                     txtDbTarget.Text = task.TargetConstr;
-                    chkClear.Checked = task.TruncateOld;
                     chkErrContinue.Checked = task.ErrContinue;
-                    chkIdentifier.Checked = task.UseIdentifier;
                     if(task.Items != null)
                     {
                         bool haverow = false;
@@ -74,10 +76,12 @@ namespace Beinet.cn.DataSync
                             string[] values = new string[COL_COUNT];
                             values[COL_SOURCE] = item.Source;
                             values[COL_TARGET] = item.Target;
+                            values[COL_TRUNCATE] = item.TruncateOld ? "true" : "false";
+                            values[COL_IDENTIFIER] = item.UseIdentifier ? "true" : "false";
                             if (item.IsSqlSource) 
                                 values[COL_SOURCEBACK] = item.Target;
 
-                            lvTables.Items.Add(new ListViewItem(values){Checked = true});
+                            lvTables.Items.Add(new ListViewItem(values) { Checked = true });
                             haverow = true;
                         }
                         if (haverow)
@@ -195,6 +199,8 @@ namespace Beinet.cn.DataSync
                     Source = source,
                     Target = target,
                     IsSqlSource = !string.IsNullOrEmpty(item.SubItems[COL_SOURCEBACK].Text),
+                    TruncateOld = item.SubItems[COL_TRUNCATE].Text == "true",
+                    UseIdentifier = item.SubItems[COL_IDENTIFIER].Text == "true",
                 });
             }
             var task = new SyncTask
@@ -203,8 +209,6 @@ namespace Beinet.cn.DataSync
                 ErrContinue = chkErrContinue.Checked,
                 SourceConstr = strSourceConn,
                 TargetConstr = strTargetConn,
-                TruncateOld = chkClear.Checked,
-                UseIdentifier = chkIdentifier.Checked,
             };
             return task;
         }
@@ -224,7 +228,7 @@ namespace Beinet.cn.DataSync
 
         private void btnGetSchma_Click(object sender, EventArgs e)
         {
-            lstSource.Visible = false;
+            lstBoolean.Visible = false;
             lstTarget.Visible = false;
 
             string strSourceConn, strTargetConn;
@@ -262,7 +266,8 @@ namespace Beinet.cn.DataSync
             string tbName = "Query_" + Guid.NewGuid().GetHashCode().ToString();
             values[COL_SOURCEBACK] = tbName;
             values[COL_TARGET] = tbName;
-
+            values[COL_TRUNCATE] = "false";
+            values[COL_IDENTIFIER] = "false";
 
             var item = new ListViewItem(values) { Checked = true };
             lvTables.Items.Insert(0, item);
@@ -298,7 +303,46 @@ namespace Beinet.cn.DataSync
 
         private void lvTables_MouseUp(object sender, MouseEventArgs e)
         {
-            ShowCombobox(lvTables, lstTarget, e.X, e.Y, COL_TARGET, COL_SOURCE);
+            ListView lv = lvTables;
+            ComboBox lst = null;
+            int x = e.X, y = e.Y;
+
+            var item = lv.GetItemAt(x, y);
+            if (item == null || !item.Checked)
+                return;
+            comboboxItem = item;
+
+            int lWidth, rWidth;
+            int col = GetMouseCol(lv, x, y, out lWidth, out rWidth);
+            switch (col)
+            {
+                case COL_TARGET:
+                    lst = lstTarget;
+                    break;
+                case COL_TRUNCATE:
+                case COL_IDENTIFIER:
+                    lst = lstBoolean;
+                    break;
+                default:
+                    return;
+            }
+
+            //获取所在位置的行的Bounds            
+            Rectangle rect = item.Bounds;
+            //修改Rect的范围使其与第二列的单元格的大小相同，为了好看 ，左边缩进了2个单位                       
+            rect.X += lv.Left + lWidth + 2;
+            rect.Y += lv.Top + 2;
+            rect.Width = rWidth - lWidth;
+            lst.Bounds = rect;
+            string val = item.SubItems[col].Text;
+            // 目标表要设置默认值
+            if (string.IsNullOrEmpty(val) && col == COL_TARGET)
+                val = item.SubItems[COL_SOURCE].Text;
+            lst.Text = val;
+            lst.Visible = true;
+            lst.BringToFront();
+            lst.Focus();
+            lst.Name = col.ToString();
         }
 
         private void lvTables_ItemChecked(object sender, ItemCheckedEventArgs e)
@@ -335,6 +379,26 @@ namespace Beinet.cn.DataSync
         }
 
         #region 静态方法集
+        // 获取鼠标所在的列号
+        private static int GetMouseCol(ListView lv, int x, int y, out int lWidth, out int rWidth)
+        {
+            lWidth = rWidth = 0;
+            var item = lv.GetItemAt(x, y);
+            if (item == null || !item.Checked)
+                return -1;
+            comboboxItem = item;
+
+            for (int i = 0; i < item.SubItems.Count; i++)
+            {
+                int tmp = lv.Columns[i].Width;
+                rWidth += tmp;
+                if (x <= rWidth && x >= lWidth)
+                    return i;
+
+                lWidth = rWidth;
+            }
+            return -1;
+        }
 
         private static void BindTables(string connstr, Control ctl, bool getViews)
         {
@@ -361,6 +425,8 @@ namespace Beinet.cn.DataSync
                     {
                         string[] values = new string[COL_COUNT];
                         values[COL_SOURCE] = name;
+                        //values[COL_TRUNCATE] = "false";
+                        //values[COL_IDENTIFIER] = "false";
                         lv.Items.Add(new ListViewItem(values));
                     }
                 }
@@ -368,6 +434,15 @@ namespace Beinet.cn.DataSync
         }
 
         private static ListViewItem comboboxItem = null;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="lv"></param>
+        /// <param name="lst"></param>
+        /// <param name="x">鼠标的x坐标</param>
+        /// <param name="y">鼠标的y坐标</param>
+        /// <param name="col">ComboBox显示在哪个列上</param>
+        /// <param name="defaultValueCol">ComboBox的默认值列</param>
         private static void ShowCombobox(ListView lv, ComboBox lst, int x, int y, int col, int defaultValueCol)
         {
             var item = lv.GetItemAt(x, y);
@@ -398,7 +473,7 @@ namespace Beinet.cn.DataSync
             rect.Width = rWidth - lWidth;
             lst.Bounds = rect;
             string val = item.SubItems[col].Text;
-            if (string.IsNullOrEmpty(val))
+            if (string.IsNullOrEmpty(val) && defaultValueCol >= 0 && item.SubItems.Count > defaultValueCol)
                 val = item.SubItems[defaultValueCol].Text;
             lst.Text = val;
             lst.Visible = true;
