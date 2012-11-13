@@ -397,19 +397,32 @@ namespace Beinet.cn.DataSync
             }
         }
 
-        void lstLeave(object sender, EventArgs e)
+        void lstChange(object sender, EventArgs e)
         {
             ComboBox lst = (ComboBox)sender;
+
             int col;
             if (!int.TryParse(lst.Name, out col))
                 return;
-            lst.Visible = false;
             if (comboboxItem != null)
             {
                 string target = lst.Text.Trim();
                 if (target != string.Empty)
                     comboboxItem.SubItems[col].Text = target;
             }
+        }
+        void lstLeave(object sender, EventArgs e)
+        {
+            ComboBox lst = sender as ComboBox;
+            if (lst == null)
+            {
+                // 不是ComboBox时，表示是ListView的Scroll事件
+                lstBoolean.Visible = false;
+                lstTarget.Visible = false;
+                return;
+            }
+            lstChange(sender, e);
+            lst.Visible = false;
         }
 
         #region 静态方法集

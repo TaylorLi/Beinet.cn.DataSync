@@ -33,6 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtDbSource = new System.Windows.Forms.TextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.chkWithNolock = new System.Windows.Forms.CheckBox();
             this.chkErrContinue = new System.Windows.Forms.CheckBox();
             this.chkAll = new System.Windows.Forms.CheckBox();
             this.btnDelRow = new System.Windows.Forms.Button();
@@ -45,13 +46,12 @@
             this.txtDbTarget = new System.Windows.Forms.TextBox();
             this.lstBoolean = new System.Windows.Forms.ComboBox();
             this.lstTarget = new System.Windows.Forms.ComboBox();
-            this.lvTables = new System.Windows.Forms.ListView();
+            this.lvTables = new Beinet.cn.DataSync.ListViewEx();
             this.colSource = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTarget = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTruncate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colIdentifier = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
-            this.chkWithNolock = new System.Windows.Forms.CheckBox();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -72,7 +72,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDbSource.Location = new System.Drawing.Point(77, 6);
             this.txtDbSource.Name = "txtDbSource";
-            this.txtDbSource.Size = new System.Drawing.Size(430, 21);
+            this.txtDbSource.Size = new System.Drawing.Size(448, 21);
             this.txtDbSource.TabIndex = 1;
             this.txtDbSource.Text = "server=192.168.19.63;database=newresourcedb;uid=mobileuser;pwd=mobileuserpws";
             this.txtDbSource.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
@@ -110,11 +110,22 @@
             this.splitContainer1.Panel2.Controls.Add(this.lstTarget);
             this.splitContainer1.Panel2.Controls.Add(this.lvTables);
             this.splitContainer1.Panel2MinSize = 1;
-            this.splitContainer1.Size = new System.Drawing.Size(641, 452);
+            this.splitContainer1.Size = new System.Drawing.Size(659, 452);
             this.splitContainer1.SplitterDistance = 109;
             this.splitContainer1.SplitterWidth = 1;
             this.splitContainer1.TabIndex = 0;
             this.splitContainer1.TabStop = false;
+            // 
+            // chkWithNolock
+            // 
+            this.chkWithNolock.AutoSize = true;
+            this.chkWithNolock.Location = new System.Drawing.Point(77, 60);
+            this.chkWithNolock.Name = "chkWithNolock";
+            this.chkWithNolock.Size = new System.Drawing.Size(108, 16);
+            this.chkWithNolock.TabIndex = 4;
+            this.chkWithNolock.Text = "增加NoLock选项";
+            this.chkWithNolock.UseVisualStyleBackColor = true;
+            this.chkWithNolock.CheckedChanged += new System.EventHandler(this.chkWithNolock_CheckedChanged);
             // 
             // chkErrContinue
             // 
@@ -163,7 +174,8 @@
             // 
             // btnGetSchma
             // 
-            this.btnGetSchma.Location = new System.Drawing.Point(509, 9);
+            this.btnGetSchma.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnGetSchma.Location = new System.Drawing.Point(526, 9);
             this.btnGetSchma.Name = "btnGetSchma";
             this.btnGetSchma.Size = new System.Drawing.Size(57, 39);
             this.btnGetSchma.TabIndex = 3;
@@ -173,8 +185,7 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLoad.Location = new System.Drawing.Point(384, 56);
+            this.btnLoad.Location = new System.Drawing.Point(389, 56);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(84, 22);
             this.btnLoad.TabIndex = 3;
@@ -184,9 +195,8 @@
             // 
             // btnSaveConfig
             // 
-            this.btnSaveConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSaveConfig.Enabled = false;
-            this.btnSaveConfig.Location = new System.Drawing.Point(491, 56);
+            this.btnSaveConfig.Location = new System.Drawing.Point(496, 56);
             this.btnSaveConfig.Name = "btnSaveConfig";
             this.btnSaveConfig.Size = new System.Drawing.Size(84, 22);
             this.btnSaveConfig.TabIndex = 3;
@@ -200,7 +210,7 @@
             this.btnSyncBegin.BackColor = System.Drawing.SystemColors.Control;
             this.btnSyncBegin.Enabled = false;
             this.btnSyncBegin.Font = new System.Drawing.Font("宋体", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.btnSyncBegin.Location = new System.Drawing.Point(571, 9);
+            this.btnSyncBegin.Location = new System.Drawing.Point(589, 9);
             this.btnSyncBegin.Name = "btnSyncBegin";
             this.btnSyncBegin.Size = new System.Drawing.Size(67, 39);
             this.btnSyncBegin.TabIndex = 3;
@@ -223,7 +233,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtDbTarget.Location = new System.Drawing.Point(77, 33);
             this.txtDbTarget.Name = "txtDbTarget";
-            this.txtDbTarget.Size = new System.Drawing.Size(430, 21);
+            this.txtDbTarget.Size = new System.Drawing.Size(448, 21);
             this.txtDbTarget.TabIndex = 2;
             this.txtDbTarget.Text = "server=192.168.19.63;database=NewResourceDBMissing;uid=mobileuser;pwd=mobileuserp" +
     "ws";
@@ -243,6 +253,7 @@
             this.lstBoolean.Size = new System.Drawing.Size(121, 20);
             this.lstBoolean.TabIndex = 3;
             this.lstBoolean.Visible = false;
+            this.lstBoolean.SelectedIndexChanged += new System.EventHandler(this.lstChange);
             this.lstBoolean.Leave += new System.EventHandler(this.lstLeave);
             // 
             // lstTarget
@@ -255,6 +266,7 @@
             this.lstTarget.Size = new System.Drawing.Size(121, 20);
             this.lstTarget.TabIndex = 2;
             this.lstTarget.Visible = false;
+            this.lstTarget.SelectedIndexChanged += new System.EventHandler(this.lstChange);
             this.lstTarget.Leave += new System.EventHandler(this.lstLeave);
             // 
             // lvTables
@@ -274,12 +286,13 @@
             this.lvTables.Margin = new System.Windows.Forms.Padding(0);
             this.lvTables.MultiSelect = false;
             this.lvTables.Name = "lvTables";
-            this.lvTables.Size = new System.Drawing.Size(641, 342);
+            this.lvTables.Size = new System.Drawing.Size(659, 342);
             this.lvTables.SmallImageList = this.imglstForLvTables;
             this.lvTables.TabIndex = 0;
             this.lvTables.TabStop = false;
             this.lvTables.UseCompatibleStateImageBehavior = false;
             this.lvTables.View = System.Windows.Forms.View.Details;
+            this.lvTables.Scroll += new System.EventHandler(this.lstLeave);
             this.lvTables.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.lvTables_DrawColumnHeader);
             this.lvTables.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lvTables_ItemChecked);
             this.lvTables.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lvTables_MouseUp);
@@ -309,22 +322,11 @@
             this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
             this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
             // 
-            // chkWithNolock
-            // 
-            this.chkWithNolock.AutoSize = true;
-            this.chkWithNolock.Location = new System.Drawing.Point(77, 60);
-            this.chkWithNolock.Name = "chkWithNolock";
-            this.chkWithNolock.Size = new System.Drawing.Size(108, 16);
-            this.chkWithNolock.TabIndex = 4;
-            this.chkWithNolock.Text = "增加NoLock选项";
-            this.chkWithNolock.UseVisualStyleBackColor = true;
-            this.chkWithNolock.CheckedChanged += new System.EventHandler(this.chkWithNolock_CheckedChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(641, 452);
+            this.ClientSize = new System.Drawing.Size(659, 452);
             this.Controls.Add(this.splitContainer1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
@@ -346,7 +348,7 @@
         private System.Windows.Forms.TextBox txtDbTarget;
         private System.Windows.Forms.Button btnGetSchma;
         private System.Windows.Forms.Button btnSyncBegin;
-        private System.Windows.Forms.ListView lvTables;
+        private Beinet.cn.DataSync.ListViewEx lvTables;
         private System.Windows.Forms.ColumnHeader colSource;
         private System.Windows.Forms.ColumnHeader colTarget;
         private System.Windows.Forms.ComboBox lstTarget;
