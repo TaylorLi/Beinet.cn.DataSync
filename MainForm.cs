@@ -29,7 +29,8 @@ namespace Beinet.cn.DataSync
         // 目标表备份列号，用于输入目标表，又取消勾选，再勾选时的恢复
         private const int COL_TARGETBACK = 5;
 
-        private readonly string configPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "sync.xml");
+        private string _defaultPath = null;//Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "sync.xml");
+
 
         public MainForm()
         {
@@ -37,66 +38,6 @@ namespace Beinet.cn.DataSync
 
             // 用于后面可以给标题栏加复选框
             //lvTables.OwnerDraw = true;
-        }
-
-        protected override void OnLoad(EventArgs e)
-        {
-            base.OnLoad(e);
-            if(File.Exists(configPath))
-            {
-                #region 配置文件存在时，从配置文件加载数据
-                SyncTask task;
-                try
-                {
-                    using (var xmlreader = new XmlTextReader(configPath))
-                    {
-                        // [\x0-\x8\x11\x12\x14-\x32]
-                        // 默认为true，如果序列化的对象含有比如0x1e之类的非打印字符，反序列化就会出错，因此设置为false http://msdn.microsoft.com/en-us/library/aa302290.aspx
-                        xmlreader.Normalization = false;
-                        xmlreader.WhitespaceHandling = WhitespaceHandling.Significant;
-                        xmlreader.XmlResolver = null;
-                        var formatter = new DataContractSerializer(typeof(SyncTask));
-                        task = formatter.ReadObject(xmlreader) as SyncTask;
-                    }
-                }
-                catch
-                {
-                    task = null;
-                }
-                if(task != null)
-                {
-                    txtDbSource.Text = task.SourceConstr;
-                    txtDbTarget.Text = task.TargetConstr;
-                    chkErrContinue.Checked = task.ErrContinue;
-                    if(task.Items != null)
-                    {
-                        bool haverow = false;
-                        foreach (SyncItem item in task.Items)
-                        {
-                            string[] values = new string[COL_COUNT];
-                            values[COL_SOURCE] = item.Source;
-                            values[COL_TARGET] = item.Target;
-                            values[COL_TRUNCATE] = item.TruncateOld ? "true" : "false";
-                            values[COL_IDENTIFIER] = item.UseIdentifier ? "true" : "false";
-                            if (item.IsSqlSource) 
-                                values[COL_SOURCEBACK] = item.Target;
-
-                            lvTables.Items.Add(new ListViewItem(values) { Checked = true });
-                            haverow = true;
-                        }
-                        if (haverow)
-                        {
-                            btnSyncBegin.Enabled = true;
-                            btnAddNewSql.Enabled = true;
-                            btnDelRow.Enabled = true;
-                            btnSaveConfig.Enabled = true;
-                        }
-                    }
-                }
-                lstTarget.Items.Add("请点击按钮：获取表结构");
-
-                #endregion
-            }
         }
 
         private void lvTables_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
@@ -135,13 +76,24 @@ namespace Beinet.cn.DataSync
             }
         }
 
-        // 保存为配置文件
+        // 保存为文件
         private void btnSaveConfig_Click(object sender, EventArgs e)
         {
             SyncTask task = GetTask();
             if (task == null)
                 return;
 
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (!string.IsNullOrEmpty(_defaultPath))
+                sfd.InitialDirectory = _defaultPath;
+            else
+                sfd.InitialDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+            sfd.FileName = "sync.xml";
+            sfd.Filter = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
+            var dialogRet = sfd.ShowDialog(this);
+            if (dialogRet != DialogResult.OK)
+                return;
+            string configPath = sfd.FileName;
             try
             {
                 // 让输出的xml可读性好
@@ -158,7 +110,7 @@ namespace Beinet.cn.DataSync
                     formatter.WriteObject(writer, task);
                     //formatter.WriteObject(fs, task);
                 }
-                var diag = MessageBox.Show("成功保存到配置文件，下次启动时将自动载入\r\n是否打开文件所在目录？", "打开目录", MessageBoxButtons.YesNo);
+                var diag = MessageBox.Show("成功保存到配置文件\r\n是否打开文件所在目录？", "打开目录", MessageBoxButtons.YesNo);
                 if(diag == DialogResult.Yes)
                 {
                     Process.Start("explorer.exe", @" /select," + configPath);
@@ -166,7 +118,82 @@ namespace Beinet.cn.DataSync
             }
             catch(Exception exp)
             {
-                MessageBox.Show("保存到文件" + configPath + "失败:\r\n" + exp.ToString());
+                MessageBox.Show("保存到文件" + configPath + "失败:\r\n" + exp);
+            }
+        }
+
+        // 从文件加载
+        private void btnLoad_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (!string.IsNullOrEmpty(_defaultPath))
+                ofd.InitialDirectory = _defaultPath;
+            else
+                ofd.InitialDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+            ofd.Filter = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
+
+            var dialogRet = ofd.ShowDialog(this);
+            if (dialogRet != DialogResult.OK)
+                return;
+
+            string configPath = ofd.FileName;//Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "sync.xml");
+            _defaultPath = Path.GetDirectoryName(configPath);
+            if (File.Exists(configPath))
+            {
+                #region 配置文件存在时，从配置文件加载数据
+                lvTables.Items.Clear();
+
+                SyncTask task;
+                try
+                {
+                    using (var xmlreader = new XmlTextReader(configPath))
+                    {
+                        // [\x0-\x8\x11\x12\x14-\x32]
+                        // 默认为true，如果序列化的对象含有比如0x1e之类的非打印字符，反序列化就会出错，因此设置为false http://msdn.microsoft.com/en-us/library/aa302290.aspx
+                        xmlreader.Normalization = false;
+                        xmlreader.WhitespaceHandling = WhitespaceHandling.Significant;
+                        xmlreader.XmlResolver = null;
+                        var formatter = new DataContractSerializer(typeof(SyncTask));
+                        task = formatter.ReadObject(xmlreader) as SyncTask;
+                    }
+                }
+                catch
+                {
+                    task = null;
+                }
+                if (task != null)
+                {
+                    txtDbSource.Text = task.SourceConstr;
+                    txtDbTarget.Text = task.TargetConstr;
+                    chkErrContinue.Checked = task.ErrContinue;
+                    if (task.Items != null)
+                    {
+                        bool haverow = false;
+                        foreach (SyncItem item in task.Items)
+                        {
+                            string[] values = new string[COL_COUNT];
+                            values[COL_SOURCE] = item.Source;
+                            values[COL_TARGET] = item.Target;
+                            values[COL_TRUNCATE] = item.TruncateOld ? "true" : "false";
+                            values[COL_IDENTIFIER] = item.UseIdentifier ? "true" : "false";
+                            if (item.IsSqlSource)
+                                values[COL_SOURCEBACK] = item.Target;
+
+                            lvTables.Items.Add(new ListViewItem(values) { Checked = true });
+                            haverow = true;
+                        }
+                        if (haverow)
+                        {
+                            btnSyncBegin.Enabled = true;
+                            btnAddNewSql.Enabled = true;
+                            btnDelRow.Enabled = true;
+                            btnSaveConfig.Enabled = true;
+                        }
+                    }
+                }
+                lstTarget.Items.Add("请点击按钮：获取表结构");
+
+                #endregion
             }
         }
 
@@ -219,6 +246,7 @@ namespace Beinet.cn.DataSync
             var check = (((CheckBox)sender).Checked);
             foreach (ListViewItem item in lvTables.Items)
             {
+                // 会触发lvTables_ItemChecked事件
                 item.Checked = check;
             }
         }
@@ -304,7 +332,7 @@ namespace Beinet.cn.DataSync
         private void lvTables_MouseUp(object sender, MouseEventArgs e)
         {
             ListView lv = lvTables;
-            ComboBox lst = null;
+            ComboBox lst;
             int x = e.X, y = e.Y;
 
             var item = lv.GetItemAt(x, y);
@@ -355,6 +383,10 @@ namespace Beinet.cn.DataSync
                 if (string.IsNullOrEmpty(targetTbName))
                     targetTbName = e.Item.SubItems[COL_SOURCE].Text;
                 e.Item.SubItems[COL_TARGET].Text = targetTbName;
+                if (string.IsNullOrEmpty(e.Item.SubItems[COL_IDENTIFIER].Text))
+                    e.Item.SubItems[COL_IDENTIFIER].Text = "false";
+                if (string.IsNullOrEmpty(e.Item.SubItems[COL_TRUNCATE].Text))
+                    e.Item.SubItems[COL_TRUNCATE].Text = "false";
             }
             else
             {
@@ -485,6 +517,7 @@ namespace Beinet.cn.DataSync
         }
 
         #endregion
+
         //// 获取指定事件的绑定的全部委托
         //void ttt()
         //{

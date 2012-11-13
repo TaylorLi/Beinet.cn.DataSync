@@ -38,10 +38,12 @@
             this.btnDelRow = new System.Windows.Forms.Button();
             this.btnAddNewSql = new System.Windows.Forms.Button();
             this.btnGetSchma = new System.Windows.Forms.Button();
+            this.btnLoad = new System.Windows.Forms.Button();
             this.btnSaveConfig = new System.Windows.Forms.Button();
             this.btnSyncBegin = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
             this.txtDbTarget = new System.Windows.Forms.TextBox();
+            this.lstBoolean = new System.Windows.Forms.ComboBox();
             this.lstTarget = new System.Windows.Forms.ComboBox();
             this.lvTables = new System.Windows.Forms.ListView();
             this.colSource = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -49,7 +51,6 @@
             this.colTruncate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colIdentifier = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
-            this.lstBoolean = new System.Windows.Forms.ComboBox();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -92,6 +93,7 @@
             this.splitContainer1.Panel1.Controls.Add(this.btnDelRow);
             this.splitContainer1.Panel1.Controls.Add(this.btnAddNewSql);
             this.splitContainer1.Panel1.Controls.Add(this.btnGetSchma);
+            this.splitContainer1.Panel1.Controls.Add(this.btnLoad);
             this.splitContainer1.Panel1.Controls.Add(this.btnSaveConfig);
             this.splitContainer1.Panel1.Controls.Add(this.btnSyncBegin);
             this.splitContainer1.Panel1.Controls.Add(this.label2);
@@ -165,28 +167,41 @@
             this.btnGetSchma.UseVisualStyleBackColor = true;
             this.btnGetSchma.Click += new System.EventHandler(this.btnGetSchma_Click);
             // 
+            // btnLoad
+            // 
+            this.btnLoad.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoad.Location = new System.Drawing.Point(588, 57);
+            this.btnLoad.Name = "btnLoad";
+            this.btnLoad.Size = new System.Drawing.Size(84, 22);
+            this.btnLoad.TabIndex = 3;
+            this.btnLoad.Text = "从文件加载";
+            this.btnLoad.UseVisualStyleBackColor = true;
+            this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+            // 
             // btnSaveConfig
             // 
             this.btnSaveConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSaveConfig.Enabled = false;
-            this.btnSaveConfig.Location = new System.Drawing.Point(548, 9);
+            this.btnSaveConfig.Location = new System.Drawing.Point(493, 57);
             this.btnSaveConfig.Name = "btnSaveConfig";
-            this.btnSaveConfig.Size = new System.Drawing.Size(62, 45);
+            this.btnSaveConfig.Size = new System.Drawing.Size(84, 22);
             this.btnSaveConfig.TabIndex = 3;
-            this.btnSaveConfig.Text = "保存为\r\n配置文件";
+            this.btnSaveConfig.Text = "保存为文件";
             this.btnSaveConfig.UseVisualStyleBackColor = true;
             this.btnSaveConfig.Click += new System.EventHandler(this.btnSaveConfig_Click);
             // 
             // btnSyncBegin
             // 
             this.btnSyncBegin.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSyncBegin.BackColor = System.Drawing.SystemColors.Control;
             this.btnSyncBegin.Enabled = false;
-            this.btnSyncBegin.Location = new System.Drawing.Point(616, 9);
+            this.btnSyncBegin.Font = new System.Drawing.Font("宋体", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.btnSyncBegin.Location = new System.Drawing.Point(560, 9);
             this.btnSyncBegin.Name = "btnSyncBegin";
-            this.btnSyncBegin.Size = new System.Drawing.Size(56, 45);
+            this.btnSyncBegin.Size = new System.Drawing.Size(104, 39);
             this.btnSyncBegin.TabIndex = 3;
-            this.btnSyncBegin.Text = "直接开\r\n始同步";
-            this.btnSyncBegin.UseVisualStyleBackColor = true;
+            this.btnSyncBegin.Text = "开始同步";
+            this.btnSyncBegin.UseVisualStyleBackColor = false;
             this.btnSyncBegin.Click += new System.EventHandler(this.btnSyncBegin_Click);
             // 
             // label2
@@ -206,8 +221,25 @@
             this.txtDbTarget.Name = "txtDbTarget";
             this.txtDbTarget.Size = new System.Drawing.Size(465, 21);
             this.txtDbTarget.TabIndex = 2;
-            this.txtDbTarget.Text = "server=192.168.19.63;database=sitepv;uid=mobileuser;pwd=mobileuserpws";
+            this.txtDbTarget.Text = "server=192.168.19.63;database=NewResourceDBMissing;uid=mobileuser;pwd=mobileuserp" +
+    "ws";
             this.txtDbTarget.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
+            // 
+            // lstBoolean
+            // 
+            this.lstBoolean.DropDownHeight = 1060;
+            this.lstBoolean.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.lstBoolean.FormattingEnabled = true;
+            this.lstBoolean.IntegralHeight = false;
+            this.lstBoolean.Items.AddRange(new object[] {
+            "true",
+            "false"});
+            this.lstBoolean.Location = new System.Drawing.Point(435, 185);
+            this.lstBoolean.Name = "lstBoolean";
+            this.lstBoolean.Size = new System.Drawing.Size(121, 20);
+            this.lstBoolean.TabIndex = 3;
+            this.lstBoolean.Visible = false;
+            this.lstBoolean.Leave += new System.EventHandler(this.lstLeave);
             // 
             // lstTarget
             // 
@@ -273,22 +305,6 @@
             this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
             this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
             // 
-            // lstBoolean
-            // 
-            this.lstBoolean.DropDownHeight = 1060;
-            this.lstBoolean.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.lstBoolean.FormattingEnabled = true;
-            this.lstBoolean.IntegralHeight = false;
-            this.lstBoolean.Items.AddRange(new object[] {
-            "true",
-            "false"});
-            this.lstBoolean.Location = new System.Drawing.Point(435, 185);
-            this.lstBoolean.Name = "lstBoolean";
-            this.lstBoolean.Size = new System.Drawing.Size(121, 20);
-            this.lstBoolean.TabIndex = 3;
-            this.lstBoolean.Visible = false;
-            this.lstBoolean.Leave += new System.EventHandler(this.lstLeave);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -328,6 +344,7 @@
         private System.Windows.Forms.ColumnHeader colTruncate;
         private System.Windows.Forms.ColumnHeader colIdentifier;
         private System.Windows.Forms.ComboBox lstBoolean;
+        private System.Windows.Forms.Button btnLoad;
     }
 }
 
