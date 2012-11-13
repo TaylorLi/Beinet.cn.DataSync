@@ -166,6 +166,7 @@ namespace Beinet.cn.DataSync
                     txtDbSource.Text = task.SourceConstr;
                     txtDbTarget.Text = task.TargetConstr;
                     chkErrContinue.Checked = task.ErrContinue;
+                    chkWithNolock.Checked = task.AddNoLock;
                     if (task.Items != null)
                     {
                         bool haverow = false;
@@ -234,6 +235,7 @@ namespace Beinet.cn.DataSync
             {
                 Items = arr.Values,
                 ErrContinue = chkErrContinue.Checked,
+                AddNoLock = chkWithNolock.Checked,
                 SourceConstr = strSourceConn,
                 TargetConstr = strTargetConn,
             };
@@ -517,6 +519,14 @@ namespace Beinet.cn.DataSync
         }
 
         #endregion
+
+        private void chkWithNolock_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkWithNolock.Checked)
+            {
+                MessageBox.Show("您选择了给表增加With(NoLock)选项，可能导致脏数据产生");
+            }
+        }
 
         //// 获取指定事件的绑定的全部委托
         //void ttt()

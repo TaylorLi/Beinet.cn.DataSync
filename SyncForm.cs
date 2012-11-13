@@ -21,12 +21,14 @@ namespace Beinet.cn.DataSync
             this.sourceCon = task.SourceConstr;
             this.targetCon = task.TargetConstr;
             this.errContinue = task.ErrContinue;
+            this.addNoLock = task.AddNoLock;
         }
 
         private readonly IEnumerable<SyncItem> arr;
         private readonly string sourceCon;
         private readonly string targetCon;
         private readonly bool errContinue;
+        private readonly bool addNoLock;
 
         private bool canceled = false;
         private bool finished = false;
@@ -64,7 +66,9 @@ namespace Beinet.cn.DataSync
                         string sql = item.Source;
                         if (!item.IsSqlSource)
                         {
-                            sql = "SELECT * FROM [" + sql + "] WITH(NOLOCK)";
+                            sql = "SELECT * FROM [" + sql + "]";
+                            if(addNoLock)
+                                sql += " WITH(NOLOCK)";
                         }
                         using (SqlDataReader reader = Common.ExecuteReader(sourceCon, sql))
                         {
@@ -248,5 +252,8 @@ namespace Beinet.cn.DataSync
 
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3)]
         public IEnumerable<SyncItem> Items { get; set; }
+
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 4)]
+        public bool AddNoLock { get; set; }
     }
 }
