@@ -402,7 +402,7 @@ namespace Beinet.cn.DataSync
             ComboBox lst = (ComboBox)sender;
 
             int col;
-            if (!int.TryParse(lst.Name, out col))
+            if (!lst.Visible || !int.TryParse(lst.Name, out col))
                 return;
             if (comboboxItem != null)
             {
