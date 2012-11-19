@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -22,6 +23,10 @@ namespace Beinet.cn.DataSync
             this.targetCon = task.TargetConstr;
             this.errContinue = task.ErrContinue;
             this.addNoLock = task.AddNoLock;
+            if (task.TimeOut <= 0)
+                this.timeOut = 30;
+            else
+                this.timeOut = task.TimeOut;
         }
 
         private readonly IEnumerable<SyncItem> arr;
@@ -29,6 +34,7 @@ namespace Beinet.cn.DataSync
         private readonly string targetCon;
         private readonly bool errContinue;
         private readonly bool addNoLock;
+        private readonly int timeOut;
 
         private bool canceled = false;
         private bool finished = false;
@@ -70,7 +76,7 @@ namespace Beinet.cn.DataSync
                             if(addNoLock)
                                 sql += " WITH(NOLOCK)";
                         }
-                        using (SqlDataReader reader = Common.ExecuteReader(sourceCon, sql))
+                        using (SqlDataReader reader = Common.ExecuteReader(sourceCon, sql, timeOut))
                         {
                             if (!reader.HasRows)
                             {
@@ -96,12 +102,20 @@ namespace Beinet.cn.DataSync
                             sw.Start();
                             using (SqlBulkCopy bcp = new SqlBulkCopy(targetCon, opn))
                             {
+                                bcp.BulkCopyTimeout = timeOut;
                                 bcp.SqlRowsCopied += bcp_SqlRowsCopied; // 用于进度显示
                                 int batchSize = 2000;
                                 bcp.BatchSize = batchSize;
                                 bcp.NotifyAfter = batchSize;// 设置为1，状态栏提示比较准确，但是速度很慢
 
                                 bcp.DestinationTableName = item.Target;
+
+                                // 设置同名列的映射,避免建表语句列顺序不一致导致无法同步的bug
+                                List<string> arrColNames = Common.GetColNames(reader);
+                                foreach (string colName in arrColNames)
+                                {
+                                    bcp.ColumnMappings.Add(colName, colName);
+                                }
                                 bcp.WriteToServer(reader);
                             }
                             //long totalrow = Common.GetTableRows(targetCon, item.Target);
@@ -220,6 +234,19 @@ namespace Beinet.cn.DataSync
                     btnClose_Click(sender, e);
             }
         }
+
+        private void lvTables_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (lvTables.SelectedItems.Count <= 0)
+                return;
+            var sb = new StringBuilder();
+            foreach (ListViewItem item in lvTables.SelectedItems)
+            {
+                sb.AppendLine(item.SubItems[0].Text + "," + item.SubItems[1].Text + "," + item.SubItems[2].Text);
+            }
+            Clipboard.SetText(sb.ToString());
+            MessageBox.Show("已经复制到粘贴板");
+        }
     }
 
     [DataContract]
@@ -255,5 +282,8 @@ namespace Beinet.cn.DataSync
 
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 4)]
         public bool AddNoLock { get; set; }
+
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 5)]
+        public int TimeOut { get; set; }
     }
 }

@@ -52,6 +52,9 @@
             this.colTruncate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colIdentifier = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtDbTimeout = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -60,7 +63,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(24, 9);
+            this.label1.Location = new System.Drawing.Point(24, 12);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(47, 12);
             this.label1.TabIndex = 0;
@@ -70,7 +73,7 @@
             // 
             this.txtDbSource.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDbSource.Location = new System.Drawing.Point(77, 6);
+            this.txtDbSource.Location = new System.Drawing.Point(72, 9);
             this.txtDbSource.Name = "txtDbSource";
             this.txtDbSource.Size = new System.Drawing.Size(448, 21);
             this.txtDbSource.TabIndex = 1;
@@ -99,7 +102,10 @@
             this.splitContainer1.Panel1.Controls.Add(this.btnSaveConfig);
             this.splitContainer1.Panel1.Controls.Add(this.btnSyncBegin);
             this.splitContainer1.Panel1.Controls.Add(this.label2);
+            this.splitContainer1.Panel1.Controls.Add(this.label4);
+            this.splitContainer1.Panel1.Controls.Add(this.label3);
             this.splitContainer1.Panel1.Controls.Add(this.label1);
+            this.splitContainer1.Panel1.Controls.Add(this.txtDbTimeout);
             this.splitContainer1.Panel1.Controls.Add(this.txtDbTarget);
             this.splitContainer1.Panel1.Controls.Add(this.txtDbSource);
             this.splitContainer1.Panel1MinSize = 1;
@@ -119,7 +125,7 @@
             // chkWithNolock
             // 
             this.chkWithNolock.AutoSize = true;
-            this.chkWithNolock.Location = new System.Drawing.Point(77, 60);
+            this.chkWithNolock.Location = new System.Drawing.Point(267, 60);
             this.chkWithNolock.Name = "chkWithNolock";
             this.chkWithNolock.Size = new System.Drawing.Size(108, 16);
             this.chkWithNolock.TabIndex = 4;
@@ -132,7 +138,7 @@
             this.chkErrContinue.AutoSize = true;
             this.chkErrContinue.Checked = true;
             this.chkErrContinue.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkErrContinue.Location = new System.Drawing.Point(214, 60);
+            this.chkErrContinue.Location = new System.Drawing.Point(381, 60);
             this.chkErrContinue.Name = "chkErrContinue";
             this.chkErrContinue.Size = new System.Drawing.Size(144, 16);
             this.chkErrContinue.TabIndex = 4;
@@ -185,7 +191,7 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(389, 56);
+            this.btnLoad.Location = new System.Drawing.Point(572, 56);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(84, 22);
             this.btnLoad.TabIndex = 3;
@@ -196,7 +202,7 @@
             // btnSaveConfig
             // 
             this.btnSaveConfig.Enabled = false;
-            this.btnSaveConfig.Location = new System.Drawing.Point(496, 56);
+            this.btnSaveConfig.Location = new System.Drawing.Point(572, 81);
             this.btnSaveConfig.Name = "btnSaveConfig";
             this.btnSaveConfig.Size = new System.Drawing.Size(84, 22);
             this.btnSaveConfig.TabIndex = 3;
@@ -221,7 +227,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 36);
+            this.label2.Location = new System.Drawing.Point(12, 35);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(59, 12);
             this.label2.TabIndex = 0;
@@ -231,7 +237,7 @@
             // 
             this.txtDbTarget.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtDbTarget.Location = new System.Drawing.Point(77, 33);
+            this.txtDbTarget.Location = new System.Drawing.Point(72, 32);
             this.txtDbTarget.Name = "txtDbTarget";
             this.txtDbTarget.Size = new System.Drawing.Size(448, 21);
             this.txtDbTarget.TabIndex = 2;
@@ -322,6 +328,34 @@
             this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
             this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 58);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(59, 12);
+            this.label3.TabIndex = 0;
+            this.label3.Text = "超时设置:";
+            // 
+            // txtDbTimeout
+            // 
+            this.txtDbTimeout.Location = new System.Drawing.Point(72, 55);
+            this.txtDbTimeout.Name = "txtDbTimeout";
+            this.txtDbTimeout.Size = new System.Drawing.Size(35, 21);
+            this.txtDbTimeout.TabIndex = 2;
+            this.txtDbTimeout.Text = "30";
+            this.txtDbTimeout.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.txtDbTimeout.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(113, 58);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(17, 12);
+            this.label4.TabIndex = 0;
+            this.label4.Text = "秒";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -363,6 +397,9 @@
         private System.Windows.Forms.ComboBox lstBoolean;
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.CheckBox chkWithNolock;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txtDbTimeout;
     }
 }
 

@@ -56,12 +56,13 @@
             this.lvTables.Margin = new System.Windows.Forms.Padding(0);
             this.lvTables.MultiSelect = false;
             this.lvTables.Name = "lvTables";
-            this.lvTables.Size = new System.Drawing.Size(704, 285);
+            this.lvTables.Size = new System.Drawing.Size(704, 283);
             this.lvTables.SmallImageList = this.imageList1;
             this.lvTables.TabIndex = 3;
             this.lvTables.TabStop = false;
             this.lvTables.UseCompatibleStateImageBehavior = false;
             this.lvTables.View = System.Windows.Forms.View.Details;
+            this.lvTables.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvTables_MouseDoubleClick);
             // 
             // colSource
             // 
@@ -86,10 +87,10 @@
             // 
             // btnClose
             // 
-            this.btnClose.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.btnClose.Location = new System.Drawing.Point(117, 296);
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnClose.Location = new System.Drawing.Point(111, 296);
             this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(75, 23);
+            this.btnClose.Size = new System.Drawing.Size(75, 29);
             this.btnClose.TabIndex = 2;
             this.btnClose.Text = "关闭窗口";
             this.btnClose.UseVisualStyleBackColor = true;
@@ -97,10 +98,10 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.btnCancel.Location = new System.Drawing.Point(8, 296);
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnCancel.Location = new System.Drawing.Point(30, 296);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.Size = new System.Drawing.Size(75, 29);
             this.btnCancel.TabIndex = 2;
             this.btnCancel.Text = "取消同步";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -108,21 +109,22 @@
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.label1.ForeColor = System.Drawing.Color.Red;
-            this.label1.Location = new System.Drawing.Point(265, 301);
+            this.label1.Location = new System.Drawing.Point(336, 301);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(447, 12);
+            this.label1.Size = new System.Drawing.Size(363, 24);
             this.label1.TabIndex = 4;
-            this.label1.Text = "数目提示不准确，如：已同步2000条，表示同步的记录数可能是2000~4000条";
+            this.label1.Text = "1、双击行可以复制\r\n2、数目提示不准，如2000条实际表示结果数在2000~4000之间";
             // 
             // SyncForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(721, 322);
+            this.ClientSize = new System.Drawing.Size(721, 334);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.lvTables);
             this.Controls.Add(this.btnCancel);

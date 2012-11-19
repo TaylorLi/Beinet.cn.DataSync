@@ -314,7 +314,7 @@ namespace Beinet.cn.DataSync
 
         private void txtDbSource_TextChanged(object sender, EventArgs e)
         {
-            btnSyncBegin.Enabled = false;
+            //btnSyncBegin.Enabled = false;
             //btnAddNewSql.Enabled = false;
             //btnDelRow.Enabled = false;
         }
@@ -461,7 +461,7 @@ namespace Beinet.cn.DataSync
                 sql += " or type='V'";
             sql += " order by name";
 
-            using (SqlDataReader reader = Common.ExecuteReader(connstr, sql))
+            using (SqlDataReader reader = Common.ExecuteReader(connstr, sql, 30))
             {
                 while (reader.Read())
                 {

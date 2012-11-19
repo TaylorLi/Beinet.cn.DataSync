@@ -8,11 +8,12 @@ namespace Beinet.cn.DataSync
 {
     public static class Common
     {
-        public static SqlDataReader ExecuteReader(string connstr, string sql, params SqlParameter[] parameters)
+        public static SqlDataReader ExecuteReader(string connstr, string sql, int timeout, params SqlParameter[] parameters)
         {
             var conn = new SqlConnection(connstr);
             var command = conn.CreateCommand();
             command.CommandText = sql;
+            command.CommandTimeout = timeout;
             if (parameters != null)
                 command.Parameters.AddRange(parameters);
             conn.Open();
