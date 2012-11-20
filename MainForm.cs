@@ -96,6 +96,13 @@ namespace Beinet.cn.DataSync
             string configPath = sfd.FileName;
             try
             {
+                // 加密连接字符串
+                if (!string.IsNullOrEmpty(task.SourceConstr))
+                    task.SourceConstr = Common.TripleDES_Encrypt(task.SourceConstr);
+                if (!string.IsNullOrEmpty(task.TargetConstr))
+                    task.TargetConstr = Common.TripleDES_Encrypt(task.TargetConstr);
+                task.Encrypted = true;
+
                 // 让输出的xml可读性好
                 XmlWriterSettings settings = new XmlWriterSettings
                 {
@@ -155,6 +162,13 @@ namespace Beinet.cn.DataSync
                         xmlreader.XmlResolver = null;
                         var formatter = new DataContractSerializer(typeof(SyncTask));
                         task = formatter.ReadObject(xmlreader) as SyncTask;
+                        if (task != null && task.Encrypted)
+                        {
+                            if (!string.IsNullOrEmpty(task.SourceConstr))
+                                task.SourceConstr = Common.TripleDES_Decrypt(task.SourceConstr);
+                            if (!string.IsNullOrEmpty(task.TargetConstr))
+                                task.TargetConstr = Common.TripleDES_Decrypt(task.TargetConstr);
+                        }
                     }
                 }
                 catch
@@ -305,10 +319,14 @@ namespace Beinet.cn.DataSync
 
         private void btnDelRow_Click(object sender, EventArgs e)
         {
+            bool removed = false;
             foreach (ListViewItem item in lvTables.CheckedItems)
             {
+                removed = true;
                 lvTables.Items.Remove(item);
             }
+            if (!removed)
+                MessageBox.Show("请先选择行");
         }
 
 
@@ -461,7 +479,7 @@ namespace Beinet.cn.DataSync
                 sql += " or type='V'";
             sql += " order by name";
 
-            using (SqlDataReader reader = Common.ExecuteReader(connstr, sql, 30))
+            using (SqlDataReader reader = SqlHelper.ExecuteReader(connstr, sql, 30))
             {
                 while (reader.Read())
                 {
@@ -541,24 +559,6 @@ namespace Beinet.cn.DataSync
             }
         }
 
-        //// 获取指定事件的绑定的全部委托
-        //void ttt()
-        //{
-        //    PropertyInfo propertyInfo = (typeof(System.Windows.Forms.Button)).GetProperty("Events", BindingFlags.Instance | BindingFlags.NonPublic);
-        //    EventHandlerList eventHandlerList = (EventHandlerList)propertyInfo.GetValue(btn_Retrive, null);
-        //    FieldInfo fieldInfo = (typeof(Control)).GetField("EventClick", BindingFlags.Static | BindingFlags.NonPublic);
-        //    if (fieldInfo != null)
-        //    {
-        //        Delegate d = eventHandlerList[fieldInfo.GetValue(null)];
-        //        if (d != null)
-        //        {
-        //            foreach (Delegate temp in d.GetInvocationList())
-        //            {
-        //               // btn_Retrive -= temp;
-        //            }
-        //        }
-        //    }
-        //}
 
     }
 }

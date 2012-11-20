@@ -43,18 +43,18 @@
             this.btnSaveConfig = new System.Windows.Forms.Button();
             this.btnSyncBegin = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.txtDbTimeout = new System.Windows.Forms.TextBox();
             this.txtDbTarget = new System.Windows.Forms.TextBox();
             this.lstBoolean = new System.Windows.Forms.ComboBox();
             this.lstTarget = new System.Windows.Forms.ComboBox();
+            this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
             this.lvTables = new Beinet.cn.DataSync.ListViewEx();
             this.colSource = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTarget = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTruncate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colIdentifier = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
-            this.label3 = new System.Windows.Forms.Label();
-            this.txtDbTimeout = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -77,7 +77,7 @@
             this.txtDbSource.Name = "txtDbSource";
             this.txtDbSource.Size = new System.Drawing.Size(448, 21);
             this.txtDbSource.TabIndex = 1;
-            this.txtDbSource.Text = "server=192.168.19.63;database=newresourcedb;uid=mobileuser;pwd=mobileuserpws";
+            this.txtDbSource.Text = "server=127.0.0.1;database=mySourceDb;uid=sa;pwd=xxx";
             this.txtDbSource.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
             // 
             // splitContainer1
@@ -141,7 +141,7 @@
             this.chkErrContinue.Location = new System.Drawing.Point(381, 60);
             this.chkErrContinue.Name = "chkErrContinue";
             this.chkErrContinue.Size = new System.Drawing.Size(144, 16);
-            this.chkErrContinue.TabIndex = 4;
+            this.chkErrContinue.TabIndex = 5;
             this.chkErrContinue.Text = "错误时继续同步其它表";
             this.chkErrContinue.UseVisualStyleBackColor = true;
             // 
@@ -151,7 +151,7 @@
             this.chkAll.Location = new System.Drawing.Point(14, 88);
             this.chkAll.Name = "chkAll";
             this.chkAll.Size = new System.Drawing.Size(48, 16);
-            this.chkAll.TabIndex = 4;
+            this.chkAll.TabIndex = 10;
             this.chkAll.Text = "全选";
             this.chkAll.UseVisualStyleBackColor = true;
             this.chkAll.CheckedChanged += new System.EventHandler(this.chkAll_CheckedChanged);
@@ -162,7 +162,7 @@
             this.btnDelRow.Location = new System.Drawing.Point(63, 81);
             this.btnDelRow.Name = "btnDelRow";
             this.btnDelRow.Size = new System.Drawing.Size(72, 23);
-            this.btnDelRow.TabIndex = 3;
+            this.btnDelRow.TabIndex = 11;
             this.btnDelRow.Text = "删除选定";
             this.btnDelRow.UseVisualStyleBackColor = true;
             this.btnDelRow.Click += new System.EventHandler(this.btnDelRow_Click);
@@ -173,7 +173,7 @@
             this.btnAddNewSql.Location = new System.Drawing.Point(141, 81);
             this.btnAddNewSql.Name = "btnAddNewSql";
             this.btnAddNewSql.Size = new System.Drawing.Size(87, 23);
-            this.btnAddNewSql.TabIndex = 3;
+            this.btnAddNewSql.TabIndex = 12;
             this.btnAddNewSql.Text = "新增查询同步";
             this.btnAddNewSql.UseVisualStyleBackColor = true;
             this.btnAddNewSql.Click += new System.EventHandler(this.btnAddNewSql_Click);
@@ -184,7 +184,7 @@
             this.btnGetSchma.Location = new System.Drawing.Point(526, 9);
             this.btnGetSchma.Name = "btnGetSchma";
             this.btnGetSchma.Size = new System.Drawing.Size(57, 39);
-            this.btnGetSchma.TabIndex = 3;
+            this.btnGetSchma.TabIndex = 6;
             this.btnGetSchma.Text = " 获取\r\n表结构";
             this.btnGetSchma.UseVisualStyleBackColor = true;
             this.btnGetSchma.Click += new System.EventHandler(this.btnGetSchma_Click);
@@ -194,7 +194,7 @@
             this.btnLoad.Location = new System.Drawing.Point(572, 56);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(84, 22);
-            this.btnLoad.TabIndex = 3;
+            this.btnLoad.TabIndex = 8;
             this.btnLoad.Text = "从文件加载";
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
@@ -205,7 +205,7 @@
             this.btnSaveConfig.Location = new System.Drawing.Point(572, 81);
             this.btnSaveConfig.Name = "btnSaveConfig";
             this.btnSaveConfig.Size = new System.Drawing.Size(84, 22);
-            this.btnSaveConfig.TabIndex = 3;
+            this.btnSaveConfig.TabIndex = 9;
             this.btnSaveConfig.Text = "保存为文件";
             this.btnSaveConfig.UseVisualStyleBackColor = true;
             this.btnSaveConfig.Click += new System.EventHandler(this.btnSaveConfig_Click);
@@ -219,7 +219,7 @@
             this.btnSyncBegin.Location = new System.Drawing.Point(589, 9);
             this.btnSyncBegin.Name = "btnSyncBegin";
             this.btnSyncBegin.Size = new System.Drawing.Size(67, 39);
-            this.btnSyncBegin.TabIndex = 3;
+            this.btnSyncBegin.TabIndex = 7;
             this.btnSyncBegin.Text = "开始\r\n同步";
             this.btnSyncBegin.UseVisualStyleBackColor = false;
             this.btnSyncBegin.Click += new System.EventHandler(this.btnSyncBegin_Click);
@@ -233,6 +233,34 @@
             this.label2.TabIndex = 0;
             this.label2.Text = "数据目标:";
             // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(113, 58);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(17, 12);
+            this.label4.TabIndex = 0;
+            this.label4.Text = "秒";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(12, 58);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(59, 12);
+            this.label3.TabIndex = 0;
+            this.label3.Text = "超时设置:";
+            // 
+            // txtDbTimeout
+            // 
+            this.txtDbTimeout.Location = new System.Drawing.Point(72, 55);
+            this.txtDbTimeout.Name = "txtDbTimeout";
+            this.txtDbTimeout.Size = new System.Drawing.Size(35, 21);
+            this.txtDbTimeout.TabIndex = 3;
+            this.txtDbTimeout.Text = "30";
+            this.txtDbTimeout.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.txtDbTimeout.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
+            // 
             // txtDbTarget
             // 
             this.txtDbTarget.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -241,8 +269,7 @@
             this.txtDbTarget.Name = "txtDbTarget";
             this.txtDbTarget.Size = new System.Drawing.Size(448, 21);
             this.txtDbTarget.TabIndex = 2;
-            this.txtDbTarget.Text = "server=192.168.19.63;database=NewResourceDBMissing;uid=mobileuser;pwd=mobileuserp" +
-    "ws";
+            this.txtDbTarget.Text = "server=127.0.0.1;database=myTargetDb;uid=sa;pwd=xxx";
             this.txtDbTarget.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
             // 
             // lstBoolean
@@ -257,7 +284,8 @@
             this.lstBoolean.Location = new System.Drawing.Point(435, 185);
             this.lstBoolean.Name = "lstBoolean";
             this.lstBoolean.Size = new System.Drawing.Size(121, 20);
-            this.lstBoolean.TabIndex = 3;
+            this.lstBoolean.TabIndex = 0;
+            this.lstBoolean.TabStop = false;
             this.lstBoolean.Visible = false;
             this.lstBoolean.SelectedIndexChanged += new System.EventHandler(this.lstChange);
             this.lstBoolean.Leave += new System.EventHandler(this.lstLeave);
@@ -270,10 +298,17 @@
             this.lstTarget.Location = new System.Drawing.Point(250, 185);
             this.lstTarget.Name = "lstTarget";
             this.lstTarget.Size = new System.Drawing.Size(121, 20);
-            this.lstTarget.TabIndex = 2;
+            this.lstTarget.TabIndex = 0;
+            this.lstTarget.TabStop = false;
             this.lstTarget.Visible = false;
             this.lstTarget.SelectedIndexChanged += new System.EventHandler(this.lstChange);
             this.lstTarget.Leave += new System.EventHandler(this.lstLeave);
+            // 
+            // imglstForLvTables
+            // 
+            this.imglstForLvTables.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
+            this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // lvTables
             // 
@@ -321,40 +356,6 @@
             // colIdentifier
             // 
             this.colIdentifier.Text = "标识插入";
-            // 
-            // imglstForLvTables
-            // 
-            this.imglstForLvTables.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
-            this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
-            this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 58);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(59, 12);
-            this.label3.TabIndex = 0;
-            this.label3.Text = "超时设置:";
-            // 
-            // txtDbTimeout
-            // 
-            this.txtDbTimeout.Location = new System.Drawing.Point(72, 55);
-            this.txtDbTimeout.Name = "txtDbTimeout";
-            this.txtDbTimeout.Size = new System.Drawing.Size(35, 21);
-            this.txtDbTimeout.TabIndex = 2;
-            this.txtDbTimeout.Text = "30";
-            this.txtDbTimeout.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.txtDbTimeout.TextChanged += new System.EventHandler(this.txtDbSource_TextChanged);
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(113, 58);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(17, 12);
-            this.label4.TabIndex = 0;
-            this.label4.Text = "秒";
             // 
             // MainForm
             // 

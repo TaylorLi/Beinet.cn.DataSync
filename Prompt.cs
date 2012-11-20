@@ -64,5 +64,11 @@ namespace Beinet.cn.DataSync
                 ((TextBox)sender).SelectAll();
             }
         }
+
+        private void Prompt_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+                btnCancel_Click(sender, e);
+        }
     }
 }

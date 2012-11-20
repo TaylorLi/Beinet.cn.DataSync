@@ -2,140 +2,195 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Beinet.cn.DataSync
 {
     public static class Common
     {
-        public static SqlDataReader ExecuteReader(string connstr, string sql, int timeout, params SqlParameter[] parameters)
+        #region 3DES加解密
+        /// <summary>
+        /// 3DES加解密的默认密钥, 前8位作为向量
+        /// </summary>
+        const string DES3_KEY = "beinet.cn%G1&73#;0(=+)`!";
+
+        /// <summary>
+        /// 使用指定的key和iv，加密input数据
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="key">密钥，必须为24位长度</param>
+        /// <param name="iv">微量，必须为8位长度</param>
+        /// <returns></returns>
+        public static string TripleDES_Encrypt(string input, string key = null, string iv = null)
         {
-            var conn = new SqlConnection(connstr);
-            var command = conn.CreateCommand();
-            command.CommandText = sql;
-            command.CommandTimeout = timeout;
-            if (parameters != null)
-                command.Parameters.AddRange(parameters);
-            conn.Open();
-            return command.ExecuteReader(CommandBehavior.CloseConnection);
+            key = key ?? DES3_KEY;
+            int lenKey = 24 - key.Length;
+            if (lenKey < 0)
+                key = key.Substring(0, 24);         // 太长时，只取前24位
+            else if (lenKey > 0)
+                key += DES3_KEY.Substring(0, lenKey); // 太短时，补足24位
+
+            iv = iv ?? key.Substring(0, 8);
+            int lenIV = 8 - iv.Length;
+            if (lenIV < 0)
+                iv = iv.Substring(0, 24);           // 太长时，只取前8位
+            else if (lenIV > 0)
+                iv += iv.Substring(0, lenIV);       // 太短时，补足8位
+
+            byte[] arrKey = Encoding.UTF8.GetBytes(key);
+            byte[] arrIV = Encoding.UTF8.GetBytes(iv);
+
+            // 获取加密后的字节数据
+            byte[] arrData = Encoding.UTF8.GetBytes(input);
+            byte[] result = TripleDesEncrypt(arrKey, arrIV, arrData);
+
+            // 转换为16进制字符串
+            StringBuilder ret = new StringBuilder();
+            foreach (byte b in result)
+            {
+                ret.AppendFormat("{0:X2}", b);
+            }
+            return ret.ToString();
         }
 
-        public static object ExecuteScalar(string connstr, string sql, params SqlParameter[] parameters)
+        /// <summary>
+        /// 使用指定的key和iv，解密input数据
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="key">密钥，必须为24位长度</param>
+        /// <param name="iv">微量，必须为8位长度</param>
+        /// <returns></returns>
+        public static string TripleDES_Decrypt(string input, string key = null, string iv = null)
         {
-            using (var conn = new SqlConnection(connstr))
-            using (var command = conn.CreateCommand())
+            key = key ?? DES3_KEY;
+            int lenKey = 24 - key.Length;
+            if (lenKey < 0)
+                key = key.Substring(0, 24);         // 太长时，只取前24位
+            else if (lenKey > 0)
+                key += DES3_KEY.Substring(0, lenKey); // 太短时，补足24位
+
+            iv = iv ?? key.Substring(0, 8);
+            int lenIV = 8 - iv.Length;
+            if (lenIV < 0)
+                iv = iv.Substring(0, 24);           // 太长时，只取前8位
+            else if (lenIV > 0)
+                iv += iv.Substring(0, lenIV);       // 太短时，补足8位
+
+            byte[] arrKey = Encoding.UTF8.GetBytes(key);
+            byte[] arrIV = Encoding.UTF8.GetBytes(iv);
+
+            // 获取加密后的字节数据
+            int len = input.Length / 2;
+            byte[] arrData = new byte[len];
+            for (int x = 0; x < len; x++)
             {
-                command.CommandText = sql;
-                if (parameters != null)
-                    command.Parameters.AddRange(parameters);
-                conn.Open();
-                return command.ExecuteScalar();
+                int i = (Convert.ToInt32(input.Substring(x * 2, 2), 16));
+                arrData[x] = (byte)i;
+            }
+
+            byte[] result = TripleDesDecrypt(arrKey, arrIV, arrData);
+            return Encoding.UTF8.GetString(result);
+        }
+
+
+        #region TripleDesEncrypt加密(3DES加密)
+        /// <summary>
+        /// 3Des加密，密钥长度必需是24字节
+        /// </summary>
+        /// <param name="key">密钥字节数组</param>
+        /// <param name="iv">向量字节数组</param>
+        /// <param name="source">源字节数组</param>
+        /// <returns>加密后的字节数组</returns>
+        private static byte[] TripleDesEncrypt(byte[] key, byte[] iv, byte[] source)
+        {
+            TripleDESCryptoServiceProvider dsp = new TripleDESCryptoServiceProvider();
+            dsp.Mode = CipherMode.CBC; // 默认值
+            dsp.Padding = PaddingMode.PKCS7; // 默认值
+            using (MemoryStream mStream = new MemoryStream())
+            using (CryptoStream cStream = new CryptoStream(mStream, dsp.CreateEncryptor(key, iv), CryptoStreamMode.Write))
+            {
+                cStream.Write(source, 0, source.Length);
+                cStream.FlushFinalBlock();
+                byte[] result = mStream.ToArray();
+                cStream.Close();
+                mStream.Close();
+                return result;
+            }
+        }
+        #endregion
+
+        #region TripleDesDecrypt解密(3DES解密)
+        /// <summary>
+        /// 3Des解密，密钥长度必需是24字节
+        /// </summary>
+        /// <param name="key">密钥字节数组</param>
+        /// <param name="iv">向量字节数组</param>
+        /// <param name="source">加密后的字节数组</param>
+        /// <param name="dataLen">解密后的数据长度</param>
+        /// <returns>解密后的字节数组</returns>
+        private static byte[] TripleDesDecrypt(byte[] key, byte[] iv, byte[] source, out int dataLen)
+        {
+            TripleDESCryptoServiceProvider dsp = new TripleDESCryptoServiceProvider();
+            dsp.Mode = CipherMode.CBC; // 默认值
+            dsp.Padding = PaddingMode.PKCS7; // 默认值
+            using (MemoryStream mStream = new MemoryStream(source))
+            using (CryptoStream cStream = new CryptoStream(mStream, dsp.CreateDecryptor(key, iv), CryptoStreamMode.Read))
+            {
+                byte[] result = new byte[source.Length];
+                dataLen = cStream.Read(result, 0, result.Length);
+                cStream.Close();
+                mStream.Close();
+                return result;
             }
         }
 
-        public static int ExecuteNonQuery(string connstr, string sql, params SqlParameter[] parameters)
+        /// <summary>
+        /// 3Des解密，密钥长度必需是24字节
+        /// </summary>
+        /// <param name="key">密钥字节数组</param>
+        /// <param name="iv">向量字节数组</param>
+        /// <param name="source">加密后的字节数组</param>
+        /// <returns>解密后的字节数组</returns>
+        private static byte[] TripleDesDecrypt(byte[] key, byte[] iv, byte[] source)
         {
-            using (var conn = new SqlConnection(connstr))
-            using (var command = conn.CreateCommand())
+            int dataLen;
+            byte[] result = TripleDesDecrypt(key, iv, source, out dataLen);
+
+            if (result.Length != dataLen)
             {
-                command.CommandText = sql;
-                if (parameters != null)
-                    command.Parameters.AddRange(parameters);
-                conn.Open();
-                return command.ExecuteNonQuery();
+                // 如果数组长度不是解密后的实际长度，需要截断多余的数据，用来解决Gzip的"Magic byte doesn't match"的问题
+                byte[] resultToReturn = new byte[dataLen];
+                Array.Copy(result, resultToReturn, dataLen);
+                return resultToReturn;
             }
+            else
+                return result;
         }
+        #endregion
 
-        public static List<string> GetColNames(SqlDataReader reader)
-        {
-            List<string> ret = new List<string>();
-            if (reader == null || !reader.HasRows)
-                return ret;
-            for (int i = 0; i < reader.FieldCount; i++)
-            {
-                ret.Add(reader.GetName(i));
-            }
-            return ret;
-        }
+        #endregion
 
-        public static string GetCreateSql(SqlDataReader reader, string tbName)
-        {
-            if (reader == null)
-                return null;
-            StringBuilder sb = new StringBuilder("Create table [" + tbName + "](");
-            DataTable dt = reader.GetSchemaTable();
-            if (dt == null || dt.Rows.Count <= 0)
-                return null;
-            foreach (DataRow row in dt.Rows)
-            {
-                string type = row["DataTypeName"].ToString().ToLower();
-                sb.Append("[" + row["ColumnName"] + "] " + type);
-                switch (type)
-                {
-                    case "bigint":
-                    case "bit":
-                    case "datetime":
-                    case "float":
-                    case "image":
-                    case "int":
-                    case "money":
-                    case "ntext":
-                    case "real":
-                    case "smalldatetime":
-                    case "smallint":
-                    case "smallmoney":
-                    case "sql_variant":
-                    case "text":
-                    case "timestamp":
-                    case "tinyint":
-                    case "uniqueidentifier":
-                    case "xml":
-                        break;
-                    case "decimal":
-                    case "numeric":
-                        sb.Append("(" + row["NumericPrecision"] + ", " + row["NumericScale"] + ")");
-                        break;
-                    case "binary":
-                    case "char":
-                    case "nchar":
-                    case "nvarchar":
-                    case "varbinary":
-                    case "varchar":
-                        if ((int)row["ColumnSize"] == int.MaxValue)
-                            sb.Append("(max)");
-                        else
-                            sb.Append("(" + row["ColumnSize"] + ")");
-                        break;
-                }
-                sb.Append(",");
-            }
-            sb.Remove(sb.Length - 1, 1);// 移除最后一个逗号
-            sb.Append(")");
-            return sb.ToString();
-        }
 
-        public static bool ExistsTable(string connstr, string tableName)
-        {
-            string sql = "select count(1) from sys.objects where type='U' and name = @tbName";
-            SqlParameter para = new SqlParameter("@tbName", SqlDbType.VarChar, 100) { Value = tableName };
-            return (int)ExecuteScalar(connstr, sql, para) > 0;
-        }
+        //// 获取指定事件的绑定的全部委托
+        //void ttt()
+        //{
+        //    PropertyInfo propertyInfo = (typeof(System.Windows.Forms.Button)).GetProperty("Events", BindingFlags.Instance | BindingFlags.NonPublic);
+        //    EventHandlerList eventHandlerList = (EventHandlerList)propertyInfo.GetValue(btn_Retrive, null);
+        //    FieldInfo fieldInfo = (typeof(Control)).GetField("EventClick", BindingFlags.Static | BindingFlags.NonPublic);
+        //    if (fieldInfo != null)
+        //    {
+        //        Delegate d = eventHandlerList[fieldInfo.GetValue(null)];
+        //        if (d != null)
+        //        {
+        //            foreach (Delegate temp in d.GetInvocationList())
+        //            {
+        //               // btn_Retrive -= temp;
+        //            }
+        //        }
+        //    }
+        //}
 
-        public static void TruncateTable(string connstr, string tableName)
-        {
-            string sql = "Truncate Table " + tableName;
-            ExecuteNonQuery(connstr, sql);
-        }
-
-        public static long GetTableRows(string connstr, string tableName)
-        {
-            string sql =
-                "SELECT a.rowcnt FROM sysindexes a, sys.tables b WHERE a.id = b.[object_id] AND a.indid <=1 AND b.[name] = @tbName";
-            SqlParameter para = new SqlParameter("@tbName", SqlDbType.VarChar, 100) { Value = tableName };
-            object obj = ExecuteScalar(connstr, sql, para);
-            if (obj == null || obj == DBNull.Value)
-                return -1;
-            return Convert.ToInt64(obj);
-        }
     }
 }

@@ -88,8 +88,10 @@
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
+            this.KeyPreview = true;
             this.Name = "Prompt";
             this.Text = "Prompt";
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Prompt_KeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();
 

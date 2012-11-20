@@ -76,7 +76,7 @@ namespace Beinet.cn.DataSync
                             if(addNoLock)
                                 sql += " WITH(NOLOCK)";
                         }
-                        using (SqlDataReader reader = Common.ExecuteReader(sourceCon, sql, timeOut))
+                        using (SqlDataReader reader = SqlHelper.ExecuteReader(sourceCon, sql, timeOut))
                         {
                             if (!reader.HasRows)
                             {
@@ -84,18 +84,18 @@ namespace Beinet.cn.DataSync
                                 continue;
                             }
 
-                            if (Common.ExistsTable(targetCon, item.Target))
+                            if (SqlHelper.ExistsTable(targetCon, item.Target))
                             {
                                 if (item.TruncateOld)
                                 {
-                                    Common.TruncateTable(targetCon, item.Target);
+                                    SqlHelper.TruncateTable(targetCon, item.Target);
                                 }
                             }
                             else
                             {
                                 // 目标不存在，创建它
-                                string createSql = Common.GetCreateSql(reader, item.Target);
-                                Common.ExecuteNonQuery(targetCon, createSql);
+                                string createSql = SqlHelper.GetCreateSql(reader, item.Target);
+                                SqlHelper.ExecuteNonQuery(targetCon, createSql);
                             }
                             var opn = item.UseIdentifier ? SqlBulkCopyOptions.KeepIdentity : SqlBulkCopyOptions.Default;
                             Stopwatch sw = new Stopwatch();
@@ -111,7 +111,7 @@ namespace Beinet.cn.DataSync
                                 bcp.DestinationTableName = item.Target;
 
                                 // 设置同名列的映射,避免建表语句列顺序不一致导致无法同步的bug
-                                List<string> arrColNames = Common.GetColNames(reader);
+                                List<string> arrColNames = SqlHelper.GetColNames(reader);
                                 foreach (string colName in arrColNames)
                                 {
                                     bcp.ColumnMappings.Add(colName, colName);
@@ -285,5 +285,11 @@ namespace Beinet.cn.DataSync
 
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 5)]
         public int TimeOut { get; set; }
+
+        /// <summary>
+        /// 是否加密，用于兼容旧配置文件
+        /// </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 6, Name = "en")]
+        public bool Encrypted { get; set; }
     }
 }
