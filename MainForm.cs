@@ -203,6 +203,7 @@ namespace Beinet.cn.DataSync
                             btnAddNewSql.Enabled = true;
                             btnDelRow.Enabled = true;
                             btnSaveConfig.Enabled = true;
+                            chkAll.Checked = true;
                         }
                     }
                 }

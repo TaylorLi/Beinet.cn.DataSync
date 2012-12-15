@@ -18,26 +18,26 @@ namespace Beinet.cn.DataSync
             InitializeComponent();
             ShowInTaskbar = false;// 不能放到OnLoad里，会导致窗体消失
 
-            this.arr = task.Items;
-            this.sourceCon = task.SourceConstr;
-            this.targetCon = task.TargetConstr;
-            this.errContinue = task.ErrContinue;
-            this.addNoLock = task.AddNoLock;
+            this.m_arr = task.Items;
+            this.m_sourceCon = task.SourceConstr;
+            this.m_targetCon = task.TargetConstr;
+            this.m_errContinue = task.ErrContinue;
+            this.m_addNoLock = task.AddNoLock;
             if (task.TimeOut <= 0)
-                this.timeOut = 30;
+                this.m_timeOut = 30;
             else
-                this.timeOut = task.TimeOut;
+                this.m_timeOut = task.TimeOut;
         }
 
-        private readonly IEnumerable<SyncItem> arr;
-        private readonly string sourceCon;
-        private readonly string targetCon;
-        private readonly bool errContinue;
-        private readonly bool addNoLock;
-        private readonly int timeOut;
+        private readonly IEnumerable<SyncItem> m_arr;
+        private readonly string m_sourceCon;
+        private readonly string m_targetCon;
+        private readonly bool m_errContinue;
+        private readonly bool m_addNoLock;
+        private readonly int m_timeOut;
 
-        private bool canceled = false;
-        private bool finished = false;
+        private bool m_canceled = false;
+        private bool m_finished = false;
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -57,97 +57,144 @@ namespace Beinet.cn.DataSync
 
         void DoSync(object state)
         {
-            try
+            foreach (var item in m_arr)
             {
-                foreach (var item in arr)
-                {
-                    if (canceled)
-                        break;
+                if (m_canceled)
+                    break;
 
-                    var row = new ListViewItem(new string[] { item.Source, item.Target, "处理中……" });
-                    _viewItem = row;
-                    ListViewAddRow(lvTables, row);
-                    try
+                var row = new ListViewItem(new string[] { item.Source, item.Target, "处理中……" });
+                _viewItem = row;
+                ListViewAddRow(lvTables, row);
+
+                int errSetp = 0;
+                try
+                {
+                    string sql = item.Source;
+                    if (!item.IsSqlSource)
                     {
-                        string sql = item.Source;
-                        if (!item.IsSqlSource)
+                        sql = "SELECT * FROM [" + sql + "]";
+                        if(m_addNoLock)
+                            sql += " WITH(NOLOCK)";
+                    }
+                    errSetp = 1;
+                    SqlCommand command;
+                    using (SqlDataReader reader = SqlHelper.ExecuteReader(m_sourceCon, sql, m_timeOut, out command))
+                    {
+                        errSetp = 2;
+                        if (!reader.HasRows)
                         {
-                            sql = "SELECT * FROM [" + sql + "]";
-                            if(addNoLock)
-                                sql += " WITH(NOLOCK)";
+                            SetListViewText(_viewItem, 2, "源表无数据，未同步", Color.Red);
+                            continue;
                         }
-                        using (SqlDataReader reader = SqlHelper.ExecuteReader(sourceCon, sql, timeOut))
+                        errSetp = 3;
+                        List<string> arrColNames = SqlHelper.GetColNames(reader);
+                        if(arrColNames.Count <= 0)
                         {
-                            if (!reader.HasRows)
+                            SetListViewText(_viewItem, 2, "源表未选择字段，未同步", Color.Red);
+                            if (!m_errContinue)
+                                break;
+                            continue;
+                        }
+                        
+                        if (SqlHelper.ExistsTable(m_targetCon, item.Target))
+                        {
+                            errSetp = 4;
+                            //todo:检查目标表结构和源表结构是否一致
+                            StringBuilder checkSchmaSql = new StringBuilder("select ");
+                            foreach (string colName in arrColNames)
                             {
-                                SetListViewText(_viewItem, 2, "源表无数据，未同步", Color.Red);
+                                checkSchmaSql.Append(colName + ",");
+                            }
+                            checkSchmaSql.Remove(checkSchmaSql.Length - 1, 1);// 删除最后一个逗号
+                            checkSchmaSql.Append(" from " + item.Target + " where 1=2");
+                            try
+                            {
+                                SqlHelper.ExecuteNonQuery(m_targetCon, checkSchmaSql.ToString());
+                            }
+                            catch(Exception exp)
+                            {
+                                SetListViewText(_viewItem, 2, "目标表缺少源表字段:" + exp.Message, Color.Red);
+                                command.Cancel();// 如果DataReader数据量非常大,Close会超时，所以这里必须调用command.Cancel方法来减少超时
+                                //reader.Close();
+
+                                if (!m_errContinue)
+                                    break;
                                 continue;
                             }
 
-                            if (SqlHelper.ExistsTable(targetCon, item.Target))
+                            if (item.TruncateOld)
                             {
-                                if (item.TruncateOld)
-                                {
-                                    SqlHelper.TruncateTable(targetCon, item.Target);
-                                }
+                                SqlHelper.TruncateTable(m_targetCon, item.Target);
                             }
-                            else
-                            {
-                                // 目标不存在，创建它
-                                string createSql = SqlHelper.GetCreateSql(reader, item.Target);
-                                SqlHelper.ExecuteNonQuery(targetCon, createSql);
-                            }
-                            var opn = item.UseIdentifier ? SqlBulkCopyOptions.KeepIdentity : SqlBulkCopyOptions.Default;
-                            Stopwatch sw = new Stopwatch();
-                            sw.Start();
-                            using (SqlBulkCopy bcp = new SqlBulkCopy(targetCon, opn))
-                            {
-                                bcp.BulkCopyTimeout = timeOut;
-                                bcp.SqlRowsCopied += bcp_SqlRowsCopied; // 用于进度显示
-                                int batchSize = 2000;
-                                bcp.BatchSize = batchSize;
-                                bcp.NotifyAfter = batchSize;// 设置为1，状态栏提示比较准确，但是速度很慢
-
-                                bcp.DestinationTableName = item.Target;
-
-                                // 设置同名列的映射,避免建表语句列顺序不一致导致无法同步的bug
-                                List<string> arrColNames = SqlHelper.GetColNames(reader);
-                                foreach (string colName in arrColNames)
-                                {
-                                    bcp.ColumnMappings.Add(colName, colName);
-                                }
-                                bcp.WriteToServer(reader);
-                            }
-                            //long totalrow = Common.GetTableRows(targetCon, item.Target);
-                            sw.Stop();
-                            string oldTxt = _viewItem.SubItems[2].Text;
-                            SetListViewText(_viewItem, 2,
-                                oldTxt + " 同步完成,耗时:" + sw.ElapsedMilliseconds.ToString("N0") + "毫秒", Color.Green);//，记录数:" + totalrow.ToString("N0")
+                            errSetp = 5;
                         }
-                    }
-                    catch (OperationAbortedException)
-                    {
-                        //bcp_SqlRowsCopied里调用Abort
-                    }
-                    catch (Exception exp)
-                    {
-                        SetListViewText(_viewItem, 2, "错误:" + exp, Color.Red);
-                        if (!errContinue)
-                            break;
+                        else
+                        {
+                            errSetp = 6;
+                            // 目标不存在，创建它
+                            string createSql = SqlHelper.GetCreateSql(reader, item.Target);
+                            SqlHelper.ExecuteNonQuery(m_targetCon, createSql);
+                            errSetp = 7;
+                        }
+                        var opn = item.UseIdentifier ? SqlBulkCopyOptions.KeepIdentity : SqlBulkCopyOptions.Default;
+                        Stopwatch sw = new Stopwatch();
+                        sw.Start();
+                        errSetp = 8;
+                        using (SqlBulkCopy bcp = new SqlBulkCopy(m_targetCon, opn))
+                        {
+                            errSetp = 9;
+                            bcp.BulkCopyTimeout = m_timeOut;
+                            bcp.SqlRowsCopied += bcp_SqlRowsCopied; // 用于进度显示
+                            int batchSize = 2000;
+                            bcp.BatchSize = batchSize;
+                            bcp.NotifyAfter = batchSize; // 设置为1，状态栏提示比较准确，但是速度很慢
+
+                            bcp.DestinationTableName = item.Target;
+
+                            // 设置同名列的映射,避免建表语句列顺序不一致导致无法同步的bug
+                            errSetp = 10;
+                            foreach (string colName in arrColNames)
+                            {
+                                bcp.ColumnMappings.Add(colName, colName);
+                            }
+                            errSetp = 11;
+                            bcp.WriteToServer(reader);
+                            errSetp = 12;
+                        }
+                        //long totalrow = Common.GetTableRows(targetCon, item.Target);
+                        sw.Stop();
+                        errSetp = 13;
+                        string oldTxt = _viewItem.SubItems[2].Text;
+                        SetListViewText(_viewItem, 2,
+                            oldTxt + " 同步完成,耗时:" + sw.ElapsedMilliseconds.ToString("N0") + "毫秒", Color.Green);//，记录数:" + totalrow.ToString("N0")
+                        errSetp = 14;
                     }
                 }
-                finished = true;
+                catch (OperationAbortedException)
+                {
+                    //bcp_SqlRowsCopied里调用Abort
+                }
+                catch (Exception exp)
+                {
+                    string err = exp.ToString();
+                    var sqlExp = exp as SqlException;
+                    if (sqlExp != null && !string.IsNullOrEmpty(sqlExp.Server))
+                        err = sqlExp.Server + ":" + err;
+                    //if (isBulkErr)
+                    err = "Step " + errSetp.ToString() + "错误: " + err;
+                    SetListViewText(_viewItem, 2, err, Color.Red);
+                    if (!m_errContinue)
+                        break;
+                }
             }
-            catch (Exception exp)
-            {
-                MessageBox.Show(exp + "");
-            }
+            m_finished = true;
+            //MessageBox.Show("完成");
         }
 
         private ListViewItem _viewItem;
         void bcp_SqlRowsCopied(object sender, SqlRowsCopiedEventArgs args)
         {
-            if (canceled)
+            if (m_canceled)
             {
                 args.Abort = true;
                 //var bcp = sender as SqlBulkCopy;
@@ -157,7 +204,7 @@ namespace Beinet.cn.DataSync
             if (_viewItem != null)
             {
                 SetListViewText(_viewItem, 2,
-                    "已同步:" + args.RowsCopied.ToString("N0") + "条" + (canceled ? " 已中止" : ""),
+                    "已同步:" + args.RowsCopied.ToString("N0") + "条" + (m_canceled ? " 已中止" : ""),
                     Color.Black);
             }
         }
@@ -204,23 +251,23 @@ namespace Beinet.cn.DataSync
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             //base.OnClosing(e);
-            if (!canceled && !finished &&
+            if (!m_canceled && !m_finished &&
                 MessageBox.Show("尚未同步完成，是否确认中止退出？", "未同步完成", MessageBoxButtons.YesNo) != DialogResult.Yes)
             {
                 e.Cancel = true;
             }
             else
             {
-                canceled = true;
+                m_canceled = true;
             }
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            if (!canceled && !finished &&
+            if (!m_canceled && !m_finished &&
                 MessageBox.Show("尚未同步完成，是否确认中止退出？", "未同步完成", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                canceled = true;
+                m_canceled = true;
             }
         }
 
@@ -228,7 +275,7 @@ namespace Beinet.cn.DataSync
         {
             if (e.KeyChar == 27)// 27表示ESC
             {
-                if (!canceled && !finished)
+                if (!m_canceled && !m_finished)
                     btnCancel_Click(sender, e);
                 else
                     btnClose_Click(sender, e);

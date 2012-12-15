@@ -10,8 +10,20 @@ namespace Beinet.cn.DataSync
     {
         public static SqlDataReader ExecuteReader(string connstr, string sql, int timeout, params SqlParameter[] parameters)
         {
+            SqlCommand command;
+            return ExecuteReader(connstr, sql, timeout, out command, parameters);
+        }
+
+        // 增加这个方法的用处：是为了便于提早关闭DataReader，参考SqlDataReader.Close方法的说明：
+        /*
+         * Close 方法填写输出参数的值、返回值和 RecordsAffected，从而增加了关闭用于处理大型或复杂查询的 SqlDataReader 所用的时间。 
+         * 如果返回值和查询影响的记录的数量不重要，则可以在调用 Close 方法前调用关联的 SqlCommand 对象的 Cancel 方法，
+         * 从而减少关闭 SqlDataReader 所需的时间。 
+         */
+        public static SqlDataReader ExecuteReader(string connstr, string sql, int timeout, out SqlCommand command, params SqlParameter[] parameters)
+        {
             var conn = new SqlConnection(connstr);
-            var command = conn.CreateCommand();
+            command = conn.CreateCommand();
             command.CommandText = sql;
             command.CommandTimeout = timeout;
             if (parameters != null)
