@@ -33,7 +33,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.txtDbSource = new System.Windows.Forms.TextBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.chkWithNolock = new System.Windows.Forms.CheckBox();
+            this.chkUseTruncate = new System.Windows.Forms.CheckBox();
             this.chkErrContinue = new System.Windows.Forms.CheckBox();
             this.chkAll = new System.Windows.Forms.CheckBox();
             this.btnDelRow = new System.Windows.Forms.Button();
@@ -49,12 +49,13 @@
             this.txtDbTarget = new System.Windows.Forms.TextBox();
             this.lstBoolean = new System.Windows.Forms.ComboBox();
             this.lstTarget = new System.Windows.Forms.ComboBox();
-            this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
             this.lvTables = new Beinet.cn.DataSync.ListViewEx();
             this.colSource = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTarget = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colTruncate = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.colIdentifier = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.imglstForLvTables = new System.Windows.Forms.ImageList(this.components);
+            this.chkWithNolock = new System.Windows.Forms.CheckBox();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -93,6 +94,7 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.chkWithNolock);
+            this.splitContainer1.Panel1.Controls.Add(this.chkUseTruncate);
             this.splitContainer1.Panel1.Controls.Add(this.chkErrContinue);
             this.splitContainer1.Panel1.Controls.Add(this.chkAll);
             this.splitContainer1.Panel1.Controls.Add(this.btnDelRow);
@@ -122,26 +124,27 @@
             this.splitContainer1.TabIndex = 0;
             this.splitContainer1.TabStop = false;
             // 
-            // chkWithNolock
+            // chkUseTruncate
             // 
-            this.chkWithNolock.AutoSize = true;
-            this.chkWithNolock.Location = new System.Drawing.Point(267, 60);
-            this.chkWithNolock.Name = "chkWithNolock";
-            this.chkWithNolock.Size = new System.Drawing.Size(108, 16);
-            this.chkWithNolock.TabIndex = 4;
-            this.chkWithNolock.Text = "增加NoLock选项";
-            this.chkWithNolock.UseVisualStyleBackColor = true;
-            this.chkWithNolock.CheckedChanged += new System.EventHandler(this.chkWithNolock_CheckedChanged);
+            this.chkUseTruncate.AutoSize = true;
+            this.chkUseTruncate.Checked = true;
+            this.chkUseTruncate.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkUseTruncate.Location = new System.Drawing.Point(136, 60);
+            this.chkUseTruncate.Name = "chkUseTruncate";
+            this.chkUseTruncate.Size = new System.Drawing.Size(156, 16);
+            this.chkUseTruncate.TabIndex = 4;
+            this.chkUseTruncate.Text = "使用Truncate清空目标表";
+            this.chkUseTruncate.UseVisualStyleBackColor = true;
             // 
             // chkErrContinue
             // 
             this.chkErrContinue.AutoSize = true;
             this.chkErrContinue.Checked = true;
             this.chkErrContinue.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkErrContinue.Location = new System.Drawing.Point(381, 60);
+            this.chkErrContinue.Location = new System.Drawing.Point(412, 60);
             this.chkErrContinue.Name = "chkErrContinue";
             this.chkErrContinue.Size = new System.Drawing.Size(144, 16);
-            this.chkErrContinue.TabIndex = 5;
+            this.chkErrContinue.TabIndex = 6;
             this.chkErrContinue.Text = "错误时继续同步其它表";
             this.chkErrContinue.UseVisualStyleBackColor = true;
             // 
@@ -151,7 +154,7 @@
             this.chkAll.Location = new System.Drawing.Point(14, 88);
             this.chkAll.Name = "chkAll";
             this.chkAll.Size = new System.Drawing.Size(48, 16);
-            this.chkAll.TabIndex = 10;
+            this.chkAll.TabIndex = 11;
             this.chkAll.Text = "全选";
             this.chkAll.UseVisualStyleBackColor = true;
             this.chkAll.CheckedChanged += new System.EventHandler(this.chkAll_CheckedChanged);
@@ -162,7 +165,7 @@
             this.btnDelRow.Location = new System.Drawing.Point(63, 81);
             this.btnDelRow.Name = "btnDelRow";
             this.btnDelRow.Size = new System.Drawing.Size(72, 23);
-            this.btnDelRow.TabIndex = 11;
+            this.btnDelRow.TabIndex = 12;
             this.btnDelRow.Text = "删除选定";
             this.btnDelRow.UseVisualStyleBackColor = true;
             this.btnDelRow.Click += new System.EventHandler(this.btnDelRow_Click);
@@ -173,7 +176,7 @@
             this.btnAddNewSql.Location = new System.Drawing.Point(141, 81);
             this.btnAddNewSql.Name = "btnAddNewSql";
             this.btnAddNewSql.Size = new System.Drawing.Size(87, 23);
-            this.btnAddNewSql.TabIndex = 12;
+            this.btnAddNewSql.TabIndex = 13;
             this.btnAddNewSql.Text = "新增查询同步";
             this.btnAddNewSql.UseVisualStyleBackColor = true;
             this.btnAddNewSql.Click += new System.EventHandler(this.btnAddNewSql_Click);
@@ -184,7 +187,7 @@
             this.btnGetSchma.Location = new System.Drawing.Point(526, 9);
             this.btnGetSchma.Name = "btnGetSchma";
             this.btnGetSchma.Size = new System.Drawing.Size(57, 39);
-            this.btnGetSchma.TabIndex = 6;
+            this.btnGetSchma.TabIndex = 7;
             this.btnGetSchma.Text = " 获取\r\n表结构";
             this.btnGetSchma.UseVisualStyleBackColor = true;
             this.btnGetSchma.Click += new System.EventHandler(this.btnGetSchma_Click);
@@ -194,7 +197,7 @@
             this.btnLoad.Location = new System.Drawing.Point(572, 56);
             this.btnLoad.Name = "btnLoad";
             this.btnLoad.Size = new System.Drawing.Size(84, 22);
-            this.btnLoad.TabIndex = 8;
+            this.btnLoad.TabIndex = 9;
             this.btnLoad.Text = "从文件加载";
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
@@ -205,7 +208,7 @@
             this.btnSaveConfig.Location = new System.Drawing.Point(572, 81);
             this.btnSaveConfig.Name = "btnSaveConfig";
             this.btnSaveConfig.Size = new System.Drawing.Size(84, 22);
-            this.btnSaveConfig.TabIndex = 9;
+            this.btnSaveConfig.TabIndex = 10;
             this.btnSaveConfig.Text = "保存为文件";
             this.btnSaveConfig.UseVisualStyleBackColor = true;
             this.btnSaveConfig.Click += new System.EventHandler(this.btnSaveConfig_Click);
@@ -219,7 +222,7 @@
             this.btnSyncBegin.Location = new System.Drawing.Point(589, 9);
             this.btnSyncBegin.Name = "btnSyncBegin";
             this.btnSyncBegin.Size = new System.Drawing.Size(67, 39);
-            this.btnSyncBegin.TabIndex = 7;
+            this.btnSyncBegin.TabIndex = 8;
             this.btnSyncBegin.Text = "开始\r\n同步";
             this.btnSyncBegin.UseVisualStyleBackColor = false;
             this.btnSyncBegin.Click += new System.EventHandler(this.btnSyncBegin_Click);
@@ -304,12 +307,6 @@
             this.lstTarget.SelectedIndexChanged += new System.EventHandler(this.lstChange);
             this.lstTarget.Leave += new System.EventHandler(this.lstLeave);
             // 
-            // imglstForLvTables
-            // 
-            this.imglstForLvTables.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
-            this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
-            this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
-            // 
             // lvTables
             // 
             this.lvTables.CheckBoxes = true;
@@ -357,6 +354,23 @@
             // 
             this.colIdentifier.Text = "标识插入";
             // 
+            // imglstForLvTables
+            // 
+            this.imglstForLvTables.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
+            this.imglstForLvTables.ImageSize = new System.Drawing.Size(1, 20);
+            this.imglstForLvTables.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // chkWithNolock
+            // 
+            this.chkWithNolock.AutoSize = true;
+            this.chkWithNolock.Location = new System.Drawing.Point(298, 60);
+            this.chkWithNolock.Name = "chkWithNolock";
+            this.chkWithNolock.Size = new System.Drawing.Size(108, 16);
+            this.chkWithNolock.TabIndex = 5;
+            this.chkWithNolock.Text = "增加NoLock选项";
+            this.chkWithNolock.UseVisualStyleBackColor = true;
+            this.chkWithNolock.CheckedChanged += new System.EventHandler(this.chkWithNolock_CheckedChanged);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -397,10 +411,11 @@
         private System.Windows.Forms.ColumnHeader colIdentifier;
         private System.Windows.Forms.ComboBox lstBoolean;
         private System.Windows.Forms.Button btnLoad;
-        private System.Windows.Forms.CheckBox chkWithNolock;
+        private System.Windows.Forms.CheckBox chkUseTruncate;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtDbTimeout;
+        private System.Windows.Forms.CheckBox chkWithNolock;
     }
 }
 

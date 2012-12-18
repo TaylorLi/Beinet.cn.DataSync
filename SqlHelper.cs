@@ -133,9 +133,9 @@ namespace Beinet.cn.DataSync
             return (int)ExecuteScalar(connstr, sql, para) > 0;
         }
 
-        public static void TruncateTable(string connstr, string tableName)
+        public static void ClearTable(string connstr, string tableName, bool useTruncate = true)
         {
-            string sql = "Truncate Table " + tableName;
+            string sql = (useTruncate ? "Truncate Table " : "Delete From ") + tableName;
             ExecuteNonQuery(connstr, sql);
         }
 

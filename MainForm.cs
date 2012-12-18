@@ -181,6 +181,7 @@ namespace Beinet.cn.DataSync
                     txtDbTarget.Text = task.TargetConstr;
                     chkErrContinue.Checked = task.ErrContinue;
                     chkWithNolock.Checked = task.AddNoLock;
+                    chkUseTruncate.Checked = task.UseTruncate;
                     if (task.Items != null)
                     {
                         bool haverow = false;
@@ -251,6 +252,7 @@ namespace Beinet.cn.DataSync
                 Items = arr.Values,
                 ErrContinue = chkErrContinue.Checked,
                 AddNoLock = chkWithNolock.Checked,
+                UseTruncate = chkUseTruncate.Checked,
                 SourceConstr = strSourceConn,
                 TargetConstr = strTargetConn,
             };

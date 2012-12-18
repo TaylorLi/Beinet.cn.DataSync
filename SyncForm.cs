@@ -18,26 +18,17 @@ namespace Beinet.cn.DataSync
             InitializeComponent();
             ShowInTaskbar = false;// 不能放到OnLoad里，会导致窗体消失
 
-            this.m_arr = task.Items;
-            this.m_sourceCon = task.SourceConstr;
-            this.m_targetCon = task.TargetConstr;
-            this.m_errContinue = task.ErrContinue;
-            this.m_addNoLock = task.AddNoLock;
             if (task.TimeOut <= 0)
-                this.m_timeOut = 30;
-            else
-                this.m_timeOut = task.TimeOut;
+                task.TimeOut = 30;
+
+            m_task = task;
         }
 
-        private readonly IEnumerable<SyncItem> m_arr;
-        private readonly string m_sourceCon;
-        private readonly string m_targetCon;
-        private readonly bool m_errContinue;
-        private readonly bool m_addNoLock;
-        private readonly int m_timeOut;
 
         private bool m_canceled = false;
         private bool m_finished = false;
+        private readonly SyncTask m_task;
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -57,7 +48,7 @@ namespace Beinet.cn.DataSync
 
         void DoSync(object state)
         {
-            foreach (var item in m_arr)
+            foreach (var item in m_task.Items)
             {
                 if (m_canceled)
                     break;
@@ -73,12 +64,12 @@ namespace Beinet.cn.DataSync
                     if (!item.IsSqlSource)
                     {
                         sql = "SELECT * FROM [" + sql + "]";
-                        if(m_addNoLock)
+                        if (m_task.AddNoLock)
                             sql += " WITH(NOLOCK)";
                     }
                     errSetp = 1;
                     SqlCommand command;
-                    using (SqlDataReader reader = SqlHelper.ExecuteReader(m_sourceCon, sql, m_timeOut, out command))
+                    using (SqlDataReader reader = SqlHelper.ExecuteReader(m_task.SourceConstr, sql, m_task.TimeOut, out command))
                     {
                         errSetp = 2;
                         if (!reader.HasRows)
@@ -91,15 +82,15 @@ namespace Beinet.cn.DataSync
                         if(arrColNames.Count <= 0)
                         {
                             SetListViewText(_viewItem, 2, "源表未选择字段，未同步", Color.Red);
-                            if (!m_errContinue)
+                            if (!m_task.ErrContinue)
                                 break;
                             continue;
                         }
-                        
-                        if (SqlHelper.ExistsTable(m_targetCon, item.Target))
+
+                        if (SqlHelper.ExistsTable(m_task.TargetConstr, item.Target))
                         {
                             errSetp = 4;
-                            //todo:检查目标表结构和源表结构是否一致
+                            //检查目标表结构和源表结构是否一致
                             StringBuilder checkSchmaSql = new StringBuilder("select ");
                             foreach (string colName in arrColNames)
                             {
@@ -109,7 +100,7 @@ namespace Beinet.cn.DataSync
                             checkSchmaSql.Append(" from " + item.Target + " where 1=2");
                             try
                             {
-                                SqlHelper.ExecuteNonQuery(m_targetCon, checkSchmaSql.ToString());
+                                SqlHelper.ExecuteNonQuery(m_task.TargetConstr, checkSchmaSql.ToString());
                             }
                             catch(Exception exp)
                             {
@@ -117,14 +108,14 @@ namespace Beinet.cn.DataSync
                                 command.Cancel();// 如果DataReader数据量非常大,Close会超时，所以这里必须调用command.Cancel方法来减少超时
                                 //reader.Close();
 
-                                if (!m_errContinue)
+                                if (!m_task.ErrContinue)
                                     break;
                                 continue;
                             }
 
                             if (item.TruncateOld)
                             {
-                                SqlHelper.TruncateTable(m_targetCon, item.Target);
+                                SqlHelper.ClearTable(m_task.TargetConstr, item.Target, m_task.UseTruncate);
                             }
                             errSetp = 5;
                         }
@@ -133,17 +124,17 @@ namespace Beinet.cn.DataSync
                             errSetp = 6;
                             // 目标不存在，创建它
                             string createSql = SqlHelper.GetCreateSql(reader, item.Target);
-                            SqlHelper.ExecuteNonQuery(m_targetCon, createSql);
+                            SqlHelper.ExecuteNonQuery(m_task.TargetConstr, createSql);
                             errSetp = 7;
                         }
                         var opn = item.UseIdentifier ? SqlBulkCopyOptions.KeepIdentity : SqlBulkCopyOptions.Default;
                         Stopwatch sw = new Stopwatch();
                         sw.Start();
                         errSetp = 8;
-                        using (SqlBulkCopy bcp = new SqlBulkCopy(m_targetCon, opn))
+                        using (SqlBulkCopy bcp = new SqlBulkCopy(m_task.TargetConstr, opn))
                         {
                             errSetp = 9;
-                            bcp.BulkCopyTimeout = m_timeOut;
+                            bcp.BulkCopyTimeout = m_task.TimeOut;
                             bcp.SqlRowsCopied += bcp_SqlRowsCopied; // 用于进度显示
                             int batchSize = 2000;
                             bcp.BatchSize = batchSize;
@@ -183,11 +174,12 @@ namespace Beinet.cn.DataSync
                     //if (isBulkErr)
                     err = "Step " + errSetp.ToString() + "错误: " + err;
                     SetListViewText(_viewItem, 2, err, Color.Red);
-                    if (!m_errContinue)
+                    if (!m_task.ErrContinue)
                         break;
                 }
             }
             m_finished = true;
+            btnCancel.Enabled = false;
             //MessageBox.Show("完成");
         }
 
@@ -268,6 +260,7 @@ namespace Beinet.cn.DataSync
                 MessageBox.Show("尚未同步完成，是否确认中止退出？", "未同步完成", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
                 m_canceled = true;
+                btnCancel.Enabled = false;
             }
         }
 
@@ -299,14 +292,33 @@ namespace Beinet.cn.DataSync
     [DataContract]
     public class SyncItem
     {
+        /// <summary>
+        /// 源表或源SQL
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 0)]
         public string Source { get; set; }
+
+        /// <summary>
+        /// 目标表名
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 1)]
         public string Target { get; set; }
+
+        /// <summary>
+        /// 指示Source是表名还是SQL
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 2, Name = "IsSql")]
         public bool IsSqlSource { get; set; }
+
+        /// <summary>
+        /// 同步前是否要清空目标表
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3, Name = "trun")]
         public bool TruncateOld { get; set; }
+
+        /// <summary>
+        /// 同步数据时是否使用标识插入，这样可以同步那些Identify字段
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 4, Name = "iden")]
         public bool UseIdentifier { get; set; }
 
@@ -315,21 +327,39 @@ namespace Beinet.cn.DataSync
     [DataContract]
     public class SyncTask
     {
+        /// <summary>
+        /// 源数据库连接字符串
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 0)]
         public string SourceConstr { get; set; }
 
+        /// <summary>
+        /// 目标数据库连接字符串
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 1)]
         public string TargetConstr { get; set; }
 
+        /// <summary>
+        /// 出错时是否继续同步下面的表
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 2)]
         public bool ErrContinue { get; set; }
 
+        /// <summary>
+        /// 要同步的所有源表
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 3)]
         public IEnumerable<SyncItem> Items { get; set; }
 
+        /// <summary>
+        /// 同步表时，是否要增加NoLock约束
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 4)]
         public bool AddNoLock { get; set; }
 
+        /// <summary>
+        /// 超时时间设置
+        /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 5)]
         public int TimeOut { get; set; }
 
@@ -338,5 +368,11 @@ namespace Beinet.cn.DataSync
         /// </summary>
         [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 6, Name = "en")]
         public bool Encrypted { get; set; }
+
+        /// <summary>
+        /// 清空目标表里是否使用Truncate语句（因为Truncate要求权限比较高，有时可能没有这个权限）
+        /// </summary>
+        [DataMember(EmitDefaultValue = false, IsRequired = false, Order = 7, Name = "del")]
+        public bool UseTruncate { get; set; }
     }
 }
