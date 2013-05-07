@@ -1,4 +1,4 @@
-Sql Server数据同步工具
+Sql Server数据同步工具，注意：此工具不再更新
 ==================
 
 注意：此工具不再更新，代码已经全部整合到 https://github.com/youbl/Beinet.cn.Tools
